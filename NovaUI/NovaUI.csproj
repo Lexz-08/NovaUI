@@ -1,0 +1,121 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProjectGuid>{9C493D29-3CE7-410C-9076-680059A72139}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>NovaUI</RootNamespace>
+    <AssemblyName>NovaUI</AssemblyName>
+    <TargetFrameworkVersion>v4.7.1</TargetFrameworkVersion>
+    <FileAlignment>512</FileAlignment>
+    <Deterministic>true</Deterministic>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\Debug\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\Release\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Design" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Xml" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Controls\NovaButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaCheckBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaFolderInput.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaFileInput.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaTabControl.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaToolWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaPictureBox.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaProgressBar.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaRichInput.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaPasswordInput.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaInput.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaLabel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaLinkLabel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaRadioButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaVSlider.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaSlider.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Controls\NovaToggle.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Include="Enums\FileInputType.cs" />
+    <Compile Include="Enums\ProgressValueAlignment.cs" />
+    <Compile Include="Enums\SliderKnobStyle.cs" />
+    <Compile Include="Enums\SliderStyle.cs" />
+    <Compile Include="EventManagement\ArgumentContainers\WindowStateChangedEventArgs.cs" />
+    <Compile Include="EventManagement\Handlers\WindowStateChangedEventHandler.cs" />
+    <Compile Include="Helpers\CaptionBitmaps.cs" />
+    <Compile Include="Helpers\ColorHelper.cs" />
+    <Compile Include="Helpers\GraphicsHelper.cs" />
+    <Compile Include="Helpers\LibMain\Constants.cs" />
+    <Compile Include="Helpers\LibMain\Win32.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Properties\Resources.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Resources.resx</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Properties\Resources.resx">
+      <Generator>ResXFileCodeGenerator</Generator>
+      <LastGenOutput>Resources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
+  </ItemGroup>
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+</Project>
