@@ -25,4 +25,4 @@ An improved (hopefully) version of the CometUI.
   - *ToolWindow*
 
 ## Download
-[NovaUI (v-1.0.0)](https://github.com/Lexz-08/NovaUI/releases/latest/download/NovaUI.dll)
+[NovaUI (v-1.0.0.0)](https://github.com/Lexz-08/NovaUI/releases/latest/download/NovaUI.dll)
