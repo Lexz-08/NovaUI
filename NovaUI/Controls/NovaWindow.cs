@@ -20,6 +20,7 @@ namespace NovaUI.Controls
 		private bool _stretchCaptions = false;
 		private bool _canResize = true;
 		private bool _animateWindow = false;
+		private bool _showCaptionBox = true;
 		private bool _useAeroSnap = true;
 		private bool _useAeroShadow = true;
 		private bool _useUserSchemeCursor = true;
@@ -229,6 +230,16 @@ namespace NovaUI.Controls
 
 				Invalidate();
 			}
+		}
+
+		/// <summary>
+		/// Gets or sets a value indicating whether button boxes will be displayed when the mouse pointer is hovered over the caption buttons.
+		/// </summary>
+		[Category("Appearance"), Description("Gets or sets a value indicating whether button boxes will be displayed when the mouse pointer is hovered over the caption buttons.")]
+		public bool ShowCaptionBox
+		{
+			get => _showCaptionBox;
+			set { _showCaptionBox = value; Invalidate(); }
 		}
 
 		/// <summary>
@@ -630,6 +641,7 @@ namespace NovaUI.Controls
 			Size captionIcon = new Size(_headerHeight - (_resizeWidth * 2), _headerHeight - (_resizeWidth * 2));
 			Point mouse = PointToClient(MousePosition);
 
+			if (_showCaptionBox) e.Graphics.FillRectangle(_headerColor.Lighter(_close.Contains(mouse) ? 0.1f : 0).ToBrush(), _close.X, _close.Y - _resizeWidth + 1, _headerHeight, _headerHeight - (_useAeroShadow ? 1 : 2));
 			if (debug)
 			{
 				e.Graphics.FillRectangle(_closeColor.ToBrush(), _close);
@@ -649,6 +661,7 @@ namespace NovaUI.Controls
 					_maximize = new Rectangle(_close.X - _headerHeight - x, _resizeWidth + y, _headerHeight, _headerHeight - (_resizeWidth * 2));
 					_minimize = new Rectangle(_maximize.X - _headerHeight - x, _resizeWidth + y, _headerHeight, _headerHeight - (_resizeWidth * 2));
 
+					if (_showCaptionBox) e.Graphics.FillRectangle(_headerColor.Lighter(_maximize.Contains(mouse) ? 0.1f : 0).ToBrush(), _maximize.X, _maximize.Y - _resizeWidth + 1, _headerHeight, _headerHeight - (_useAeroShadow ? 1 : 2));
 					if (debug)
 					{
 						e.Graphics.FillRectangle(_maxColor.ToBrush(), _maximize);
@@ -665,6 +678,7 @@ namespace NovaUI.Controls
 							.Rescale(-_resizeWidth, _resizeWidth * 2));
 				}
 
+				if (_showCaptionBox) e.Graphics.FillRectangle(_headerColor.Lighter(_minimize.Contains(mouse) ? 0.1f : 0).ToBrush(), _minimize.X, _minimize.Y - _resizeWidth + 1, _headerHeight, _headerHeight - (_useAeroShadow ? 1 : 2));
 				if (debug)
 				{
 					e.Graphics.FillRectangle(_minColor.ToBrush(), _minimize);
@@ -678,7 +692,7 @@ namespace NovaUI.Controls
 
 			if (_allowCaption1)
 			{
-				_caption1 = new Rectangle((MinimizeBox ? _minimize : _close).X - _headerHeight - x, y, _headerHeight, _headerHeight - (_resizeWidth * 2));
+				_caption1 = new Rectangle((MinimizeBox ? _minimize : _close).X - _headerHeight - x, _resizeWidth + y, _headerHeight, _headerHeight - (_resizeWidth * 2));
 
 				ImageAttributes attributes = new ImageAttributes();
 				attributes.SetRemapTable(new ColorMap[] { new ColorMap
@@ -687,6 +701,7 @@ namespace NovaUI.Controls
 						NewColor = _caption1.Contains(mouse) ? _caption1Color : ForeColor
 					} });
 
+				if (_showCaptionBox) e.Graphics.FillRectangle(_headerColor.Lighter(_caption1.Contains(mouse) ? 0.1f : 0).ToBrush(), _caption1.X, _caption1.Y - _resizeWidth + 1, _headerHeight, _headerHeight - (_useAeroShadow ? 1 : 2));
 				e.Graphics.DrawImage(_caption1Content,
 					new Rectangle(_caption1.X + (!_stretchCaptions ? ((_caption1.Width - captionIcon.Width) / 2) : 0), _caption1.Y, !_stretchCaptions ? captionIcon.Width : _caption1.Width, !_stretchCaptions ? captionIcon.Height : _caption1.Height)
 					.Rescale(-_resizeWidth, _resizeWidth * 2).Rescale(2, -4));
@@ -694,7 +709,7 @@ namespace NovaUI.Controls
 
 			if (_allowCaption2)
 			{
-				_caption2 = new Rectangle(_caption1.X - _headerHeight - x, y, _headerHeight, _headerHeight - (_resizeWidth * 2));
+				_caption2 = new Rectangle(_caption1.X - _headerHeight - x, _resizeWidth + y, _headerHeight, _headerHeight - (_resizeWidth * 2));
 
 				ImageAttributes attributes = new ImageAttributes();
 				attributes.SetRemapTable(new ColorMap[] {
@@ -704,6 +719,7 @@ namespace NovaUI.Controls
 						NewColor = _caption2.Contains(mouse) ? _caption2Color : ForeColor
 					} });
 
+				if (_showCaptionBox) e.Graphics.FillRectangle(_headerColor.Lighter(_caption2.Contains(mouse) ? 0.1f : 0).ToBrush(), _caption2.X, _caption2.Y - _resizeWidth + 1, _headerHeight, _headerHeight - (_useAeroShadow ? 1 : 2));
 				e.Graphics.DrawImage(_caption2Content,
 					new Rectangle(_caption2.X + (!_stretchCaptions ? ((_caption2.Width - captionIcon.Width) / 2) : 0), _caption2.Y, !_stretchCaptions ? captionIcon.Width : _caption2.Width, !_stretchCaptions ? captionIcon.Height : _caption2.Height)
 					.Rescale(-_resizeWidth, _resizeWidth * 2).Rescale(2, -4));

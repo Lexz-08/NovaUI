@@ -34,7 +34,7 @@
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
 			this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
-			this.ClientSize = new System.Drawing.Size(832, 528);
+			this.ClientSize = new System.Drawing.Size(841, 562);
 			this.Font = new System.Drawing.Font("Source Sans Pro SemiBold", 10F);
 			this.MaximizeBox = false;
 			this.Name = "Main";
