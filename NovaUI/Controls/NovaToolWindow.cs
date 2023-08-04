@@ -12,16 +12,20 @@ namespace NovaUI.Controls
 	{
 		private Color _headerColor = Constants.SecondaryColor;
 		private Color _closeColor = Color.Red;
+		private Color _minColor = Color.SeaGreen;
+		private Color _maxColor = Color.DodgerBlue;
 		private Color _borderColor = Constants.BorderColor;
 		private bool _stretchCaptions = false;
 		private bool _canResize = true;
-		private bool _animateWindow = true;
+		private bool _animateWindow = false;
+		private bool _useAeroSnap = true;
 		private bool _useAeroShadow = true;
 		private bool _useUserSchemeCursor = true;
 		private Cursor _originalCrsr = Cursors.Default;
 
 		private bool _aeroEnabled = false;
 		private bool _canFade = true;
+		private Size _stateChangeSize;
 
 		private Rectangle _topLeft, _top, _topRight,
 			_left, _right,
@@ -48,6 +52,18 @@ namespace NovaUI.Controls
 		public event EventHandler CloseColorChanged;
 
 		/// <summary>
+		/// Occurs when the value of the <see cref="MinimizeColor"/> property changes.
+		/// </summary>
+		[Category("Property"), Description("Occurs when the value of the MinimizeColor property changes.")]
+		public event EventHandler MinimizeColorChanged;
+
+		/// <summary>
+		/// Occurs when the value of the <see cref="MaximizeColor"/> property changes.
+		/// </summary>
+		[Category("Property"), Description("Occurs when the value of the MaximizeColor property changes.")]
+		public event EventHandler MaximizeColorChanged;
+
+		/// <summary>
 		/// Occurs when the value of the <see cref="BorderColor"/> property changes.
 		/// </summary>
 		[Category("Property"), Description("Occurs when the value of the BorderColor property changes.")]
@@ -70,6 +86,26 @@ namespace NovaUI.Controls
 		protected virtual void OnCloseColorChanged(EventArgs e)
 		{
 			CloseColorChanged?.Invoke(this, e);
+			Invalidate();
+		}
+
+		/// <summary>
+		/// Raises the <see cref="MinimizeColorChanged"/> event.
+		/// </summary>
+		/// <param name="e">An EventArgs that contains the event data.</param>
+		protected virtual void OnMinimizeColorChanged(EventArgs e)
+		{
+			MinimizeColorChanged?.Invoke(this, e);
+			Invalidate();
+		}
+
+		/// <summary>
+		/// Raises the <see cref="MaximizeColorChanged"/> event.
+		/// </summary>
+		/// <param name="e">An EventArgs that contains the event data.</param>
+		protected virtual void OnMaximizeColorChanged(EventArgs e)
+		{
+			MaximizeColorChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
@@ -101,6 +137,26 @@ namespace NovaUI.Controls
 		{
 			get => _closeColor;
 			set { _closeColor = value; OnCloseColorChanged(EventArgs.Empty); }
+		}
+
+		/// <summary>
+		/// Gets or sets the color of the minimize button on the form header.
+		/// </summary>
+		[Category("Appearance"), Description("Gets or sets the color of the minimize button on the form header.")]
+		public Color MinimizeColor
+		{
+			get => _minColor;
+			set { _minColor = value; OnMinimizeColorChanged(EventArgs.Empty); }
+		}
+
+		/// <summary>
+		/// Gets or sets the color of the maximize button on the form header.
+		/// </summary>
+		[Category("Appearance"), Description("Gets or sets the color of the maximize button on the form header.")]
+		public Color MaximizeColor
+		{
+			get => _maxColor;
+			set { _maxColor = value; OnMaximizeColorChanged(EventArgs.Empty); }
 		}
 
 		/// <summary>
@@ -142,7 +198,30 @@ namespace NovaUI.Controls
 		public bool AnimateWindow
 		{
 			get => _animateWindow;
-			set { _animateWindow = value; Invalidate(); }
+			set
+			{
+				_animateWindow = value;
+				if (value) _useAeroSnap = false;
+
+				Invalidate();
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the form will utilize Windows Aero snapping.
+		/// </summary>
+		[Category("Behavior"), Description("Gets or sets a value indicating whether the form will utilize Windows Aero snapping.")]
+		public bool UseAeroSnap
+		{
+			get => _useAeroSnap;
+			set
+			{
+				_useAeroSnap = value;
+				if (value) _animateWindow = false;
+				FormBorderStyle = value ? (_canResize ? FormBorderStyle.Sizable : FormBorderStyle.FixedSingle) : FormBorderStyle.None;
+
+				Invalidate();
+			}
 		}
 
 		/// <summary>
@@ -241,10 +320,7 @@ namespace NovaUI.Controls
 			ForeColor = Constants.TextColor;
 
 			MinimumSize = new Size(200, 100);
-			FormBorderStyle = FormBorderStyle.None;
-
-			Opacity = 0;
-			Fade(true);
+			FormBorderStyle = FormBorderStyle.Sizable;
 		}
 
 		private void Fade(bool fadeIn, Action callback = null)
@@ -302,28 +378,25 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseMove(e);
 
-			if (_canResize)
+			if (_left.Contains(e.Location) || _right.Contains(e.Location) && _canResize)
 			{
-				if (_left.Contains(e.Location) || _right.Contains(e.Location))
-				{
-					if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeWE");
-					else Cursor = Cursors.SizeWE;
-				}
-				else if (_top.Contains(e.Location) || _bottom.Contains(e.Location))
-				{
-					if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNS");
-					else Cursor = Cursors.SizeNS;
-				}
-				else if (_topLeft.Contains(e.Location) || _bottomRight.Contains(e.Location))
-				{
-					if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNWSE");
-					else Cursor = Cursors.SizeNWSE;
-				}
-				else if (_topRight.Contains(e.Location) || _bottomLeft.Contains(e.Location))
-				{
-					if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNESW");
-					else Cursor = Cursors.SizeNESW;
-				}
+				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeWE");
+				else Cursor = Cursors.SizeWE;
+			}
+			else if (_top.Contains(e.Location) || _bottom.Contains(e.Location) && _canResize)
+			{
+				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNS");
+				else Cursor = Cursors.SizeNS;
+			}
+			else if (_topLeft.Contains(e.Location) || _bottomRight.Contains(e.Location) && _canResize)
+			{
+				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNWSE");
+				else Cursor = Cursors.SizeNWSE;
+			}
+			else if (_topRight.Contains(e.Location) || _bottomLeft.Contains(e.Location) && _canResize)
+			{
+				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNESW");
+				else Cursor = Cursors.SizeNESW;
 			}
 			else if (_close.Contains(e.Location) ||
 				(_caption1.Contains(e.Location) && _allowCaption1) ||
@@ -346,48 +419,45 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseDown(e);
 
-			if (_canResize)
+			if (_left.Contains(e.Location) && _canResize)
 			{
-				if (_left.Contains(e.Location))
-				{
-					Win32.ReleaseCapture();
-					Win32.SendMessage(Handle, 161, 10, 0);
-				}
-				else if (_right.Contains(e.Location))
-				{
-					Win32.ReleaseCapture();
-					Win32.SendMessage(Handle, 161, 11, 0);
-				}
-				else if (_top.Contains(e.Location))
-				{
-					Win32.ReleaseCapture();
-					Win32.SendMessage(Handle, 161, 12, 0);
-				}
-				else if (_topLeft.Contains(e.Location))
-				{
-					Win32.ReleaseCapture();
-					Win32.SendMessage(Handle, 161, 13, 0);
-				}
-				else if (_topRight.Contains(e.Location))
-				{
-					Win32.ReleaseCapture();
-					Win32.SendMessage(Handle, 161, 14, 0);
-				}
-				else if (_bottom.Contains(e.Location))
-				{
-					Win32.ReleaseCapture();
-					Win32.SendMessage(Handle, 161, 15, 0);
-				}
-				else if (_bottomLeft.Contains(e.Location))
-				{
-					Win32.ReleaseCapture();
-					Win32.SendMessage(Handle, 161, 16, 0);
-				}
-				else if (_bottomRight.Contains(e.Location))
-				{
-					Win32.ReleaseCapture();
-					Win32.SendMessage(Handle, 161, 17, 0);
-				}
+				Win32.ReleaseCapture();
+				Win32.SendMessage(Handle, 161, 10, 0);
+			}
+			else if (_right.Contains(e.Location) && _canResize)
+			{
+				Win32.ReleaseCapture();
+				Win32.SendMessage(Handle, 161, 11, 0);
+			}
+			else if (_top.Contains(e.Location) && _canResize)
+			{
+				Win32.ReleaseCapture();
+				Win32.SendMessage(Handle, 161, 12, 0);
+			}
+			else if (_topLeft.Contains(e.Location) && _canResize)
+			{
+				Win32.ReleaseCapture();
+				Win32.SendMessage(Handle, 161, 13, 0);
+			}
+			else if (_topRight.Contains(e.Location) && _canResize)
+			{
+				Win32.ReleaseCapture();
+				Win32.SendMessage(Handle, 161, 14, 0);
+			}
+			else if (_bottom.Contains(e.Location) && _canResize)
+			{
+				Win32.ReleaseCapture();
+				Win32.SendMessage(Handle, 161, 15, 0);
+			}
+			else if (_bottomLeft.Contains(e.Location) && _canResize)
+			{
+				Win32.ReleaseCapture();
+				Win32.SendMessage(Handle, 161, 16, 0);
+			}
+			else if (_bottomRight.Contains(e.Location) && _canResize)
+			{
+				Win32.ReleaseCapture();
+				Win32.SendMessage(Handle, 161, 17, 0);
 			}
 			else if (_close.Contains(e.Location))
 			{
@@ -422,8 +492,8 @@ namespace NovaUI.Controls
 				{
 					leftWidth = 0,
 					rightWidth = 0,
-					topHeight = 1,
-					bottomHeight = 0
+					topHeight = 0,
+					bottomHeight = 1
 				};
 				Win32.DwmExtendFrameIntoClientArea(Handle, ref margins);
 			}
@@ -469,7 +539,7 @@ namespace NovaUI.Controls
 			// for visual debugging of the Form layout
 			bool debug = false;
 
-			_close = new Rectangle(Width - _headerHeight - _resizeWidth, _resizeWidth + (_useAeroShadow ? 1 : 0), _headerHeight, _headerHeight - (_resizeWidth * 2));
+			_close = new Rectangle(Width - _headerHeight - _resizeWidth, _resizeWidth, _headerHeight, _headerHeight - (_resizeWidth * 2));
 
 			Size captionIcon = new Size(_headerHeight - (_resizeWidth * 2), _headerHeight - (_resizeWidth * 2));
 			Point mouse = PointToClient(MousePosition);
@@ -486,14 +556,14 @@ namespace NovaUI.Controls
 
 			if (_allowCaption1)
 			{
-				_caption1 = new Rectangle(_close.X - _headerHeight, _useAeroShadow ? 1 : 0, _headerHeight, _headerHeight - (_resizeWidth * 2));
+				_caption1 = new Rectangle(_close.X - _headerHeight, 0, _headerHeight, _headerHeight - (_resizeWidth * 2));
 
 				ImageAttributes attributes = new ImageAttributes();
 				attributes.SetRemapTable(new ColorMap[] { new ColorMap
-				{
-					OldColor = ForeColor,
-					NewColor = _caption1.Contains(mouse) ? _caption1Color : ForeColor
-				} });
+					{
+						OldColor = ForeColor,
+						NewColor = _caption1.Contains(mouse) ? _caption1Color : ForeColor
+					} });
 
 				e.Graphics.DrawImage(_caption1Content,
 					new Rectangle(_caption1.X + (!_stretchCaptions ? ((_caption1.Width - captionIcon.Width) / 2) : 0), _caption1.Y, !_stretchCaptions ? captionIcon.Width : _caption1.Width, !_stretchCaptions ? captionIcon.Height : _caption1.Height)
@@ -502,15 +572,15 @@ namespace NovaUI.Controls
 
 			if (_allowCaption2)
 			{
-				_caption2 = new Rectangle(_caption1.X - _headerHeight, _useAeroShadow ? 1 : 0, _headerHeight, _headerHeight - (_resizeWidth * 2));
+				_caption2 = new Rectangle(_caption1.X - _headerHeight, 0, _headerHeight, _headerHeight - (_resizeWidth * 2));
 
 				ImageAttributes attributes = new ImageAttributes();
 				attributes.SetRemapTable(new ColorMap[] {
-				new ColorMap
-				{
-					OldColor = ForeColor,
-					NewColor = _caption2.Contains(mouse) ? _caption2Color : ForeColor
-				} });
+					new ColorMap
+					{
+						OldColor = ForeColor,
+						NewColor = _caption2.Contains(mouse) ? _caption2Color : ForeColor
+					} });
 
 				e.Graphics.DrawImage(_caption2Content,
 					new Rectangle(_caption2.X + (!_stretchCaptions ? ((_caption2.Width - captionIcon.Width) / 2) : 0), _caption2.Y, !_stretchCaptions ? captionIcon.Width : _caption2.Width, !_stretchCaptions ? captionIcon.Height : _caption2.Height)
@@ -522,7 +592,42 @@ namespace NovaUI.Controls
 		{
 			base.OnActivated(e);
 
-			Fade(true);
+			if (_animateWindow) Fade(true);
+		}
+
+		protected override void OnLoad(EventArgs e)
+		{
+			base.OnLoad(e);
+
+			if (_animateWindow)
+			{
+				Opacity = 0;
+				Invalidate();
+			}
+		}
+
+		protected override void WndProc(ref Message m)
+		{
+			const int WM_NCCALCSIZE = 0x0083;
+			const int WM_SYSCOMMAND = 0x0112;
+			const int SC_MINIMIZE = 0xF020;
+			const int SC_RESTORE = 0xF120;
+
+			if (_useAeroSnap)
+			{
+				if (m.Msg == WM_NCCALCSIZE && (int)m.WParam == 1)
+					return;
+
+				if (m.Msg == WM_SYSCOMMAND)
+				{
+					int wParam = (int)m.WParam & 0xFFF0;
+
+					if (wParam == SC_MINIMIZE) _stateChangeSize = ClientSize;
+					if (wParam == SC_RESTORE) Size = _stateChangeSize;
+				}
+			}
+
+			base.WndProc(ref m);
 		}
 
 		protected override CreateParams CreateParams

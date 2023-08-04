@@ -19,13 +19,15 @@ namespace NovaUI.Controls
 		private Color _borderColor = Constants.BorderColor;
 		private bool _stretchCaptions = false;
 		private bool _canResize = true;
-		private bool _animateWindow = true;
+		private bool _animateWindow = false;
+		private bool _useAeroSnap = true;
 		private bool _useAeroShadow = true;
 		private bool _useUserSchemeCursor = true;
 		private Cursor _originalCrsr = Cursors.Default;
 
 		private bool _aeroEnabled = false;
 		private bool _canFade = true;
+		private Size _stateChangeSize;
 
 		private Rectangle _topLeft, _top, _topRight,
 			_left, _right,
@@ -220,7 +222,30 @@ namespace NovaUI.Controls
 		public bool AnimateWindow
 		{
 			get => _animateWindow;
-			set { _animateWindow = value; Invalidate(); }
+			set
+			{
+				_animateWindow = value;
+				if (value) _useAeroSnap = false;
+
+				Invalidate();
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets a value indicating whether the form will utilize Windows Aero snapping.
+		/// </summary>
+		[Category("Behavior"), Description("Gets or sets a value indicating whether the form will utilize Windows Aero snapping.")]
+		public bool UseAeroSnap
+		{
+			get => _useAeroSnap;
+			set
+			{
+				_useAeroSnap = value;
+				if (value) _animateWindow = false;
+				FormBorderStyle = value ? (MaximizeBox ? FormBorderStyle.Sizable : FormBorderStyle.FixedSingle) : FormBorderStyle.None;
+
+				Invalidate();
+			}
 		}
 
 		/// <summary>
@@ -336,7 +361,7 @@ namespace NovaUI.Controls
 			ForeColor = Constants.TextColor;
 
 			MinimumSize = new Size(200, 100);
-			FormBorderStyle = FormBorderStyle.None;
+			FormBorderStyle = FormBorderStyle.Sizable;
 		}
 
 		private void Fade(bool fadeIn, Action callback = null)
@@ -377,7 +402,7 @@ namespace NovaUI.Controls
 				_caption1Content = Content;
 				_caption1Click = ClickEvent;
 			}
-			
+
 			if (!_allowCaption2)
 			{
 				_allowCaption2 = true;
@@ -487,7 +512,11 @@ namespace NovaUI.Controls
 			{
 				if (_animateWindow)
 					Fade(false, () => WindowState = FormWindowState.Minimized);
-				else WindowState = FormWindowState.Minimized;
+				else
+				{
+					_stateChangeSize = ClientSize;
+					WindowState = FormWindowState.Minimized;
+				}
 			}
 			else if (_maximize.Contains(e.Location) && MinimizeBox && MaximizeBox && _canResize)
 			{
@@ -504,9 +533,15 @@ namespace NovaUI.Controls
 				else
 				{
 					if (WindowState == FormWindowState.Maximized)
+					{
 						WindowState = FormWindowState.Normal;
+						Size = _stateChangeSize;
+					}
 					else if (WindowState == FormWindowState.Normal)
+					{
+						_stateChangeSize = ClientSize;
 						WindowState = FormWindowState.Maximized;
+					}
 				}
 			}
 			else if (_allowCaption1 && _caption1.Contains(e.Location)) _caption1Click(this, e);
@@ -528,6 +563,11 @@ namespace NovaUI.Controls
 		{
 			base.OnPaint(e);
 
+			bool flag = WindowState == FormWindowState.Maximized && _useAeroSnap;
+			int x = flag ? 8 : 0;
+			int y = flag ? 8 : 0;
+			int w = flag ? 16 : 0;
+
 			if (_aeroEnabled && _useAeroShadow)
 			{
 				int v = 2;
@@ -536,14 +576,14 @@ namespace NovaUI.Controls
 				{
 					leftWidth = 0,
 					rightWidth = 0,
-					topHeight = 1,
-					bottomHeight = 0
+					topHeight = 0,
+					bottomHeight = 1
 				};
 				Win32.DwmExtendFrameIntoClientArea(Handle, ref margins);
 			}
 
 			e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
-			_header = new Rectangle(0, 0, Width, _headerHeight);
+			_header = new Rectangle(0, y, Width, _headerHeight);
 
 			if (!_useAeroShadow)
 			{
@@ -566,7 +606,7 @@ namespace NovaUI.Controls
 			_bottom = new Rectangle(_resizeWidth, Height - _resizeWidth, Width - (_resizeWidth * 2), _resizeWidth);
 			_bottomRight = new Rectangle(Width - _resizeWidth, Height - _resizeWidth, _resizeWidth, _resizeWidth);
 
-			Rectangle text = new Rectangle(_resizeWidth, _resizeWidth, Width - (_resizeWidth * 2), _headerHeight - (_resizeWidth * 2));
+			Rectangle text = new Rectangle(_resizeWidth + x, _resizeWidth + y, Width - (_resizeWidth * 2) - w, _headerHeight - (_resizeWidth * 2));
 			if (ShowIcon)
 			{
 				text.X += _headerHeight - (_resizeWidth * 2) + 2;
@@ -578,15 +618,15 @@ namespace NovaUI.Controls
 			if (_allowCaption2) text.Width -= _headerHeight;
 			if (_useAeroShadow) text.Y += 1;
 
-			if (ShowIcon) e.Graphics.DrawIcon(Icon, new Rectangle(_resizeWidth, _resizeWidth + (_useAeroShadow ? 1 : 0), _headerHeight - (_resizeWidth * 2), _headerHeight - (_resizeWidth * 2)));
+			if (ShowIcon) e.Graphics.DrawIcon(Icon, new Rectangle(_resizeWidth + x, _resizeWidth + y + (_useAeroShadow ? 1 : 0), _headerHeight - (_resizeWidth * 2), _headerHeight - (_resizeWidth * 2)));
 
 			e.Graphics.DrawString(Text, Font, ForeColor.ToBrush(), text, Constants.LeftAlign);
 
 			// for visual debugging of the Form layout
 			bool debug = false;
 
-			_close = new Rectangle(Width - _headerHeight - _resizeWidth, _resizeWidth + (_useAeroShadow ? 1 : 0), _headerHeight, _headerHeight - (_resizeWidth * 2));
-			
+			_close = new Rectangle(Width - _headerHeight - _resizeWidth - x, _resizeWidth + y, _headerHeight, _headerHeight - (_resizeWidth * 2));
+
 			Size captionIcon = new Size(_headerHeight - (_resizeWidth * 2), _headerHeight - (_resizeWidth * 2));
 			Point mouse = PointToClient(MousePosition);
 
@@ -599,15 +639,15 @@ namespace NovaUI.Controls
 			e.Graphics.DrawImage(Bitmaps.Instance[_headerHeight, _close.Contains(mouse) ? _closeColor : ForeColor, BitmapType.Close],
 				new Rectangle(_close.X + (!_stretchCaptions ? ((_close.Width - captionIcon.Width) / 2) : 0), _close.Y, !_stretchCaptions ? captionIcon.Width : _close.Width, !_stretchCaptions ? captionIcon.Height : _close.Height)
 				.Rescale(-_resizeWidth, _resizeWidth * 2));
-			
+
 			if (MinimizeBox)
 			{
-				_minimize = new Rectangle(_close.X - _headerHeight, _resizeWidth + (_useAeroShadow ? 1 : 0), _headerHeight, _headerHeight - (_resizeWidth * 2));
+				_minimize = new Rectangle(_close.X - _headerHeight - x, _resizeWidth + y, _headerHeight, _headerHeight - (_resizeWidth * 2));
 
 				if (MaximizeBox && _canResize)
 				{
-					_maximize = new Rectangle(_close.X - _headerHeight, _resizeWidth + (_useAeroShadow ? 1 : 0), _headerHeight, _headerHeight - (_resizeWidth * 2));
-					_minimize = new Rectangle(_maximize.X - _headerHeight, _resizeWidth + (_useAeroShadow ? 1 : 0), _headerHeight, _headerHeight - (_resizeWidth * 2));
+					_maximize = new Rectangle(_close.X - _headerHeight - x, _resizeWidth + y, _headerHeight, _headerHeight - (_resizeWidth * 2));
+					_minimize = new Rectangle(_maximize.X - _headerHeight - x, _resizeWidth + y, _headerHeight, _headerHeight - (_resizeWidth * 2));
 
 					if (debug)
 					{
@@ -638,7 +678,7 @@ namespace NovaUI.Controls
 
 			if (_allowCaption1)
 			{
-				_caption1 = new Rectangle((MinimizeBox ? _minimize : _close).X - _headerHeight, _useAeroShadow ? 1 : 0, _headerHeight, _headerHeight - (_resizeWidth * 2));
+				_caption1 = new Rectangle((MinimizeBox ? _minimize : _close).X - _headerHeight - x, y, _headerHeight, _headerHeight - (_resizeWidth * 2));
 
 				ImageAttributes attributes = new ImageAttributes();
 				attributes.SetRemapTable(new ColorMap[] { new ColorMap
@@ -654,7 +694,7 @@ namespace NovaUI.Controls
 
 			if (_allowCaption2)
 			{
-				_caption2 = new Rectangle(_caption1.X - _headerHeight, _useAeroShadow ? 1 : 0, _headerHeight, _headerHeight - (_resizeWidth * 2));
+				_caption2 = new Rectangle(_caption1.X - _headerHeight - x, y, _headerHeight, _headerHeight - (_resizeWidth * 2));
 
 				ImageAttributes attributes = new ImageAttributes();
 				attributes.SetRemapTable(new ColorMap[] {
@@ -674,7 +714,7 @@ namespace NovaUI.Controls
 		{
 			base.OnResizeEnd(e);
 
-			if (_canResize)
+			if (_canResize && !_useAeroSnap)
 			{
 				Point screenLoc = Screen.FromPoint(Location).Bounds.Location;
 				int screenY = screenLoc.Y;
@@ -704,6 +744,30 @@ namespace NovaUI.Controls
 				Opacity = 0;
 				Invalidate();
 			}
+		}
+
+		protected override void WndProc(ref Message m)
+		{
+			const int WM_NCCALCSIZE = 0x0083;
+			const int WM_SYSCOMMAND = 0x0112;
+			const int SC_MINIMIZE = 0xF020;
+			const int SC_RESTORE = 0xF120;
+
+			if (_useAeroSnap)
+			{
+				if (m.Msg == WM_NCCALCSIZE && (int)m.WParam == 1)
+					return;
+
+				if (m.Msg == WM_SYSCOMMAND)
+				{
+					int wParam = (int)m.WParam & 0xFFF0;
+
+					if (wParam == SC_MINIMIZE) _stateChangeSize = ClientSize;
+					if (wParam == SC_RESTORE) Size = _stateChangeSize;
+				}
+			}
+
+			base.WndProc(ref m);
 		}
 
 		protected override CreateParams CreateParams
