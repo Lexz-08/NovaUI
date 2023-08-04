@@ -25,4 +25,4 @@ An improved (hopefully) version of the [CometUI](https://github.com/Lexz-08/Come
   - *ToolWindow* - **1.0.0^**
 
 ## Download
-[NovaUI (1.0.1)](https://github.com/Lexz-08/NovaUI/releases/latest/download/NovaUI.dll)
+[NovaUI (1.0.2)](https://github.com/Lexz-08/NovaUI/releases/latest/download/NovaUI.dll)
