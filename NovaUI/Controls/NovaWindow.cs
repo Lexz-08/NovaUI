@@ -394,28 +394,25 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseMove(e);
 
-			if (_canResize)
+			if (_left.Contains(e.Location) || _right.Contains(e.Location) && _canResize)
 			{
-				if (_left.Contains(e.Location) || _right.Contains(e.Location))
-				{
-					if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeWE");
-					else Cursor = Cursors.SizeWE;
-				}
-				else if (_top.Contains(e.Location) || _bottom.Contains(e.Location))
-				{
-					if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNS");
-					else Cursor = Cursors.SizeNS;
-				}
-				else if (_topLeft.Contains(e.Location) || _bottomRight.Contains(e.Location))
-				{
-					if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNWSE");
-					else Cursor = Cursors.SizeNWSE;
-				}
-				else if (_topRight.Contains(e.Location) || _bottomLeft.Contains(e.Location))
-				{
-					if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNESW");
-					else Cursor = Cursors.SizeNESW;
-				}
+				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeWE");
+				else Cursor = Cursors.SizeWE;
+			}
+			else if (_top.Contains(e.Location) || _bottom.Contains(e.Location) && _canResize)
+			{
+				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNS");
+				else Cursor = Cursors.SizeNS;
+			}
+			else if (_topLeft.Contains(e.Location) || _bottomRight.Contains(e.Location) && _canResize)
+			{
+				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNWSE");
+				else Cursor = Cursors.SizeNWSE;
+			}
+			else if (_topRight.Contains(e.Location) || _bottomLeft.Contains(e.Location) && _canResize)
+			{
+				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNESW");
+				else Cursor = Cursors.SizeNESW;
 			}
 			else if (_close.Contains(e.Location) ||
 				(_minimize.Contains(e.Location) && MinimizeBox) ||
@@ -440,48 +437,45 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseDown(e);
 
-			if (_canResize)
+			if (_left.Contains(e.Location) && _canResize)
 			{
-				if (_left.Contains(e.Location))
-				{
-					Win32.ReleaseCapture();
-					Win32.SendMessage(Handle, 161, 10, 0);
-				}
-				else if (_right.Contains(e.Location))
-				{
-					Win32.ReleaseCapture();
-					Win32.SendMessage(Handle, 161, 11, 0);
-				}
-				else if (_top.Contains(e.Location))
-				{
-					Win32.ReleaseCapture();
-					Win32.SendMessage(Handle, 161, 12, 0);
-				}
-				else if (_topLeft.Contains(e.Location))
-				{
-					Win32.ReleaseCapture();
-					Win32.SendMessage(Handle, 161, 13, 0);
-				}
-				else if (_topRight.Contains(e.Location))
-				{
-					Win32.ReleaseCapture();
-					Win32.SendMessage(Handle, 161, 14, 0);
-				}
-				else if (_bottom.Contains(e.Location))
-				{
-					Win32.ReleaseCapture();
-					Win32.SendMessage(Handle, 161, 15, 0);
-				}
-				else if (_bottomLeft.Contains(e.Location))
-				{
-					Win32.ReleaseCapture();
-					Win32.SendMessage(Handle, 161, 16, 0);
-				}
-				else if (_bottomRight.Contains(e.Location))
-				{
-					Win32.ReleaseCapture();
-					Win32.SendMessage(Handle, 161, 17, 0);
-				}
+				Win32.ReleaseCapture();
+				Win32.SendMessage(Handle, 161, 10, 0);
+			}
+			else if (_right.Contains(e.Location) && _canResize)
+			{
+				Win32.ReleaseCapture();
+				Win32.SendMessage(Handle, 161, 11, 0);
+			}
+			else if (_top.Contains(e.Location) && _canResize)
+			{
+				Win32.ReleaseCapture();
+				Win32.SendMessage(Handle, 161, 12, 0);
+			}
+			else if (_topLeft.Contains(e.Location) && _canResize)
+			{
+				Win32.ReleaseCapture();
+				Win32.SendMessage(Handle, 161, 13, 0);
+			}
+			else if (_topRight.Contains(e.Location) && _canResize)
+			{
+				Win32.ReleaseCapture();
+				Win32.SendMessage(Handle, 161, 14, 0);
+			}
+			else if (_bottom.Contains(e.Location) && _canResize)
+			{
+				Win32.ReleaseCapture();
+				Win32.SendMessage(Handle, 161, 15, 0);
+			}
+			else if (_bottomLeft.Contains(e.Location) && _canResize)
+			{
+				Win32.ReleaseCapture();
+				Win32.SendMessage(Handle, 161, 16, 0);
+			}
+			else if (_bottomRight.Contains(e.Location) && _canResize)
+			{
+				Win32.ReleaseCapture();
+				Win32.SendMessage(Handle, 161, 17, 0);
 			}
 			else if (_close.Contains(e.Location))
 			{

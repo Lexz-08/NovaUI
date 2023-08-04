@@ -32,17 +32,14 @@
 			// 
 			// Main
 			// 
-			this.AnimateWindow = false;
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
 			this.BackColor = System.Drawing.Color.FromArgb(((int)(((byte)(25)))), ((int)(((byte)(25)))), ((int)(((byte)(25)))));
-			this.CanResize = false;
 			this.ClientSize = new System.Drawing.Size(800, 450);
 			this.Font = new System.Drawing.Font("Source Sans Pro SemiBold", 10F);
 			this.MaximizeBox = false;
 			this.Name = "Main";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
 			this.Text = "Demo";
-			this.UseAeroShadow = false;
 			this.ResumeLayout(false);
 
 		}
