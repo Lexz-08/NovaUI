@@ -337,9 +337,6 @@ namespace NovaUI.Controls
 
 			MinimumSize = new Size(200, 100);
 			FormBorderStyle = FormBorderStyle.None;
-
-			Opacity = 0;
-			Fade(true);
 		}
 
 		private void Fade(bool fadeIn, Action callback = null)
@@ -701,7 +698,18 @@ namespace NovaUI.Controls
 		{
 			base.OnActivated(e);
 
-			Fade(true);
+			if (_animateWindow) Fade(true);
+		}
+
+		protected override void OnLoad(EventArgs e)
+		{
+			base.OnLoad(e);
+
+			if (_animateWindow)
+			{
+				Opacity = 0;
+				Invalidate();
+			}
 		}
 
 		protected override CreateParams CreateParams

@@ -40,7 +40,6 @@
 			this.Font = new System.Drawing.Font("Source Sans Pro SemiBold", 10F);
 			this.MaximizeBox = false;
 			this.Name = "Main";
-			this.Opacity = 1D;
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
 			this.Text = "Demo";
 			this.UseAeroShadow = false;
