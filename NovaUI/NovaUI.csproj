@@ -49,9 +49,6 @@
     <Compile Include="Controls\NovaFileInput.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="Controls\NovaMessageBox.cs">
-      <SubType>Form</SubType>
-    </Compile>
     <Compile Include="Controls\NovaTabControl.cs">
       <SubType>Component</SubType>
     </Compile>
