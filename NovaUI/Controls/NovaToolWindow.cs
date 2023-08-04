@@ -12,8 +12,6 @@ namespace NovaUI.Controls
 	{
 		private Color _headerColor = Constants.SecondaryColor;
 		private Color _closeColor = Color.Red;
-		private Color _minColor = Color.SeaGreen;
-		private Color _maxColor = Color.DodgerBlue;
 		private Color _borderColor = Constants.BorderColor;
 		private bool _stretchCaptions = false;
 		private bool _canResize = true;
@@ -137,26 +135,6 @@ namespace NovaUI.Controls
 		{
 			get => _closeColor;
 			set { _closeColor = value; OnCloseColorChanged(EventArgs.Empty); }
-		}
-
-		/// <summary>
-		/// Gets or sets the color of the minimize button on the form header.
-		/// </summary>
-		[Category("Appearance"), Description("Gets or sets the color of the minimize button on the form header.")]
-		public Color MinimizeColor
-		{
-			get => _minColor;
-			set { _minColor = value; OnMinimizeColorChanged(EventArgs.Empty); }
-		}
-
-		/// <summary>
-		/// Gets or sets the color of the maximize button on the form header.
-		/// </summary>
-		[Category("Appearance"), Description("Gets or sets the color of the maximize button on the form header.")]
-		public Color MaximizeColor
-		{
-			get => _maxColor;
-			set { _maxColor = value; OnMaximizeColorChanged(EventArgs.Empty); }
 		}
 
 		/// <summary>
