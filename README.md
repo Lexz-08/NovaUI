@@ -1,6 +1,6 @@
 # NovaUI
 ## Description
-An improved (hopefully) version of the CometUI.
+An improved (hopefully) version of the [CometUI](https://github.com/Lexz-08/CometUI).
 
 ## Controls
   - *Button* - **1.0.0**
