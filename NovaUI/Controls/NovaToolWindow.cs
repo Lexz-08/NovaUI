@@ -596,6 +596,9 @@ namespace NovaUI.Controls
 				Opacity = 0;
 				Invalidate();
 			}
+
+			_stateChangeSize = ClientSize;
+			Size = new Size(ClientSize.Width - 16, ClientSize.Height - 39);
 		}
 
 		protected override void WndProc(ref Message m)
