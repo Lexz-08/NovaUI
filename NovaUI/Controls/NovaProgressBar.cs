@@ -246,14 +246,6 @@ namespace NovaUI.Controls
 		}
 
 		/// <summary>
-		/// No longer needed.
-		/// </summary>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
-		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
-		[Obsolete("The BackColor property is not needed.", true)]
-		public new Color BackColor => Color.Empty;
-
-		/// <summary>
 		/// Replaced by the <see cref="Value"/> property.
 		/// </summary>
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -270,6 +262,7 @@ namespace NovaUI.Controls
 			DoubleBuffered = true;
 
 			Font = "Segoe UI";
+			BackColor = Constants.PrimaryColor;
 			ForeColor = Constants.TextColor;
 			Size = new Size(200, 12);
 		}
@@ -310,7 +303,7 @@ namespace NovaUI.Controls
 				}
 
 			float percent = _value / (float)(_maximum - _minimum);
-			Rectangle progress = new Rectangle(border.X + _borderWidth, border.Y + _borderWidth, (int)((border.Width - (_borderWidth * 2)) * percent), border.Height - (_borderWidth * 2));
+			Rectangle progress = new Rectangle(border.X + _borderWidth + 1, border.Y + _borderWidth + 1, (int)((border.Width - (_borderWidth * 2)) * percent) - 2, border.Height - (_borderWidth * 2) - 2);
 
 			if (_borderRadius > 0)
 			{
@@ -326,12 +319,18 @@ namespace NovaUI.Controls
 				else radius = 0;
 
 				e.Graphics.FillPath(_borderColor.ToBrush(), border.Roundify(_borderRadius));
-				if (radius > 0) e.Graphics.FillPath(_progressColor.ToBrush(), progress.Roundify(radius));
-				else e.Graphics.FillRectangle(_progressColor.ToBrush(), progress);
+				e.Graphics.FillPath(BackColor.ToBrush(),
+					new Rectangle(border.X + _borderWidth, border.Y + _borderWidth, border.Width - (_borderWidth * 2), border.Height - (_borderWidth * 2)).Roundify(_borderRadius > 1 ? _borderRadius - 1 : 0));
+				if (radius > 0)
+					e.Graphics.FillPath(_progressColor.ToBrush(), progress.Roundify(radius));
+				else
+					e.Graphics.FillRectangle(_progressColor.ToBrush(), progress);
 			}
 			else
 			{
 				e.Graphics.FillRectangle(_borderColor.ToBrush(), border);
+				e.Graphics.FillRectangle(BackColor.ToBrush(),
+					new Rectangle(border.X + _borderWidth, border.Y + _borderWidth, border.Width - (_borderWidth * 2), border.Height - (_borderWidth * 2)));
 				e.Graphics.FillRectangle(_progressColor.ToBrush(), progress);
 			}
 		}
