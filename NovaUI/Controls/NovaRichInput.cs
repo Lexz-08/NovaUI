@@ -221,6 +221,19 @@ namespace NovaUI.Controls
 		}
 
 		/// <summary>
+		/// Gets or sets the starting point of text selected in the control.
+		/// </summary>
+		/// <returns>
+		/// The starting point of text selected in the control.
+		/// </returns>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		public int SelectionStart
+		{
+			get => _input.SelectionStart;
+			set { _input.SelectionStart = value; _input.Invalidate(); Invalidate(); }
+		}
+
+		/// <summary>
 		/// Gets or sets the color of the text when the text is selected in a control.
 		/// </summary>
 		/// <returns>
