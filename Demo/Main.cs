@@ -1,4 +1,6 @@
-﻿using NovaUI.Controls;
+﻿using System.Windows.Forms;
+
+using NovaUI.Controls;
 
 namespace Demo
 {

@@ -338,6 +338,11 @@ namespace NovaUI.Controls
 			_input.Width = Width - 16 - (2 * (_borderRadius == 0 ? 0 : _borderRadius / (_underlineBorder ? 2 : 4))) - (_borderWidth * 2);
 		}
 
+		/// <summary>
+		/// Clears the input.
+		/// </summary>
+		public void ClearInput() => _input.Clear();
+
 		protected override void OnResize(EventArgs e)
 		{
 			base.OnResize(e);

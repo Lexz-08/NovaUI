@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.IO;
 using System.Windows.Forms;
 
 using NovaUI.Helpers;
@@ -235,6 +236,12 @@ namespace NovaUI.Controls
 		}
 
 		/// <summary>
+		/// Gets the file extension of the currently file path.
+		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		public string Extension => Path.GetExtension(_input.Text);
+
+		/// <summary>
 		/// Gets or sets the cursor that is displayed when the mouse pointer is over the control.
 		/// </summary>
 		/// <returns>
@@ -347,6 +354,11 @@ namespace NovaUI.Controls
 			_input.Location = new Point(8 + (_borderRadius == 0 ? 0 : _borderRadius / (_underlineBorder ? 2 : 4)) + _borderWidth, _input.Location.Y);
 			_input.Width = Width - 16 - (2 * (_borderRadius == 0 ? 0 : _borderRadius / (_underlineBorder ? 2 : 4))) - (_borderWidth * 2);
 		}
+
+		/// <summary>
+		/// Clears the current file path.
+		/// </summary>
+		public void ClearFile() => _input.Clear();
 
 		protected override void OnResize(EventArgs e)
 		{

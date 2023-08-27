@@ -17,8 +17,10 @@ namespace NovaUI.Controls
 		private int _borderWidth = 1;
 		private int _borderRadius = 6;
 		private bool _underlineBorder = false;
+		private bool _preventEditOnShow = true;
 		private bool _useUserSchemeCursor = true;
 		private Cursor _originalCrsr = Cursors.IBeam;
+		private char _passwordChar = '•';
 
 		private TextBox _input = new TextBox();
 		private bool _mouseHover = false;
@@ -151,6 +153,22 @@ namespace NovaUI.Controls
 		}
 
 		/// <summary>
+		/// Gets or sets a value indicating whether input is prevented when showing the password.
+		/// </summary>
+		[Category("Behavior"), Description("Gets or sets a value indicating whether input is prevented when showing the password.")]
+		public bool PreventEditOnShow
+		{
+			get => _preventEditOnShow;
+			set
+			{
+				if (_input.PasswordChar == 0)
+					_input.ReadOnly = value;
+				_preventEditOnShow = value;
+				Invalidate();
+			}
+		}
+
+		/// <summary>
 		/// Gets or sets a value indicating whether the control will use the user-selected system scheme cursor.
 		/// </summary>
 		[Category("Behavior"), Description("Gets or sets a value indicating whether the control will use the user-selected system scheme cursor.")]
@@ -200,19 +218,6 @@ namespace NovaUI.Controls
 		}
 
 		/// <summary>
-		/// Gets or sets a value indicating whether text in the control is read-only.
-		/// </summary>
-		/// <returns>
-		/// <see langword="true"/> if the control is read-only; otherwise <see langword="false"/>. The default is <see langword="false"/>.
-		/// </returns>
-		[Category("Behavior"), Description("Gets or sets a value indicating whether text in the control is read-only.")]
-		public bool ReadOnly
-		{
-			get => _input.ReadOnly;
-			set { _input.ReadOnly = value; _input.Invalidate(); Invalidate(); }
-		}
-
-		/// <summary>
 		/// Gets or sets the chararcter used to mask characters of a password in a single-line input control.
 		/// </summary>
 		/// <returns>
@@ -225,6 +230,7 @@ namespace NovaUI.Controls
 			set
 			{
 				if (value == 0) value = '•';
+				else _passwordChar = value;
 				_input.PasswordChar = value;
 				_input.Invalidate();
 				Invalidate();
@@ -344,6 +350,28 @@ namespace NovaUI.Controls
 			_input.Location = new Point(8 + (_borderRadius == 0 ? 0 : _borderRadius / (_underlineBorder ? 2 : 4)) + _borderWidth, _input.Location.Y);
 			_input.Width = Width - 16 - (2 * (_borderRadius == 0 ? 0 : _borderRadius / (_underlineBorder ? 2 : 4))) - (_borderWidth * 2);
 		}
+
+		/// <summary>
+		/// Toggles whether the password is shown as text or the currently set password char.
+		/// </summary>
+		public void TogglePasswordText()
+		{
+			if (_input.PasswordChar == 0)
+			{
+				_input.PasswordChar = _passwordChar;
+				if (_preventEditOnShow) _input.ReadOnly = false;
+			}
+			else
+			{
+				_input.PasswordChar = (char)0;
+				if (_preventEditOnShow) _input.ReadOnly = true;
+			}
+		}
+
+		/// <summary>
+		/// Clears the current password.
+		/// </summary>
+		public void ClearPassword() => _input.Clear();
 
 		protected override void OnResize(EventArgs e)
 		{
