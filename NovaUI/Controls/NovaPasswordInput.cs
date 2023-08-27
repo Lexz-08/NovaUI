@@ -1,9 +1,10 @@
-﻿using NovaUI.Helpers;
-using NovaUI.Helpers.LibMain;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
+
+using NovaUI.Helpers;
+using NovaUI.Helpers.LibMain;
 
 namespace NovaUI.Controls
 {
@@ -13,6 +14,7 @@ namespace NovaUI.Controls
 	{
 		private Color _borderColor = Constants.BorderColor;
 		private Color _activeColor = Constants.AccentColor;
+		private int _borderWidth = 1;
 		private int _borderRadius = 6;
 		private bool _underlineBorder = false;
 		private bool _useUserSchemeCursor = true;
@@ -32,6 +34,12 @@ namespace NovaUI.Controls
 		/// </summary>
 		[Category("Property"), Description("Occurs when the value of the ActiveColor property changes.")]
 		public event EventHandler ActiveColorChanged;
+
+		/// <summary>
+		/// Occurs when the value of the <see cref="BorderWidth"/> property changes.
+		/// </summary>
+		[Category("Property"), Description("Occurs when the value of the BorderWidth property changes.")]
+		public event EventHandler BorderWidthChanged;
 
 		/// <summary>
 		/// Occurs when the value of the <see cref="BorderRadius"/> property changes.
@@ -56,6 +64,16 @@ namespace NovaUI.Controls
 		protected virtual void OnActiveColorChanged(EventArgs e)
 		{
 			ActiveColorChanged?.Invoke(this, e);
+			Invalidate();
+		}
+
+		/// <summary>
+		/// Raises the <see cref="BorderWidthChanged"/> event.
+		/// </summary>
+		/// <param name="e">An EventArgs that contains the event data.</param>
+		protected virtual void OnBorderWidthChanged(EventArgs e)
+		{
+			BorderWidthChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
@@ -90,6 +108,21 @@ namespace NovaUI.Controls
 		}
 
 		/// <summary>
+		/// Gets or sets the border width of the control.
+		/// </summary>
+		[Category("Appearance"), Description("Gets or sets the border width of the control.")]
+		public int BorderWidth
+		{
+			get => _borderWidth;
+			set
+			{
+				_borderWidth = value;
+				UpdateInputBounds();
+				OnBorderWidthChanged(EventArgs.Empty);
+			}
+		}
+
+		/// <summary>
 		/// Gets or sets the border radius of the control.
 		/// </summary>
 		[Category("Appearance"), Description("Gets or sets the border radius of the control.")]
@@ -102,8 +135,7 @@ namespace NovaUI.Controls
 				else if (value > Math.Min(Width, Height) / 2)
 					value = Math.Min(Width, Height) / 2;
 				_borderRadius = value;
-				_input.Location = new Point(8 + (value == 0 ? 0 : value / (_underlineBorder ? 2 : 4)), _input.Location.Y);
-				_input.Width = Width - 16 - (2 * (value == 0 ? 0 : value / (_underlineBorder ? 2 : 4)));
+				UpdateInputBounds();
 				OnBorderRadiusChanged(EventArgs.Empty);
 			}
 		}
@@ -296,12 +328,21 @@ namespace NovaUI.Controls
 			_input.MouseClick += (_, e) => OnMouseClick(e);
 
 			Controls.Add(_input);
+
+			UpdateHeight();
+			Invalidate();
 		}
 
 		private void UpdateHeight()
 		{
-			if (Height < _input.Height + 16) Height = _input.Height + 16;
+			if (Height < _input.Height + 16 || Height > _input.Height + 16) Height = _input.Height + 16;
 			if (!_input.Multiline) Height = _input.Height + 16;
+		}
+
+		private void UpdateInputBounds()
+		{
+			_input.Location = new Point(8 + (_borderRadius == 0 ? 0 : _borderRadius / (_underlineBorder ? 2 : 4)) + _borderWidth, _input.Location.Y);
+			_input.Width = Width - 16 - (2 * (_borderRadius == 0 ? 0 : _borderRadius / (_underlineBorder ? 2 : 4))) - (_borderWidth * 2);
 		}
 
 		protected override void OnResize(EventArgs e)
@@ -403,14 +444,14 @@ namespace NovaUI.Controls
 					e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
 
 					e.Graphics.FillPath((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush(),
-						new Rectangle(1, 2, Width - 3, Height - 3).Roundify(_borderRadius));
+						new Rectangle(1, 2, Width - (_borderWidth * 2) - 1, Height - (_borderWidth * 2) - 1).Roundify(_borderRadius));
 					e.Graphics.FillPath(BackColor.ToBrush(),
-						new Rectangle(0, 0, Width - 1, Height - 3).Roundify(_borderRadius > 1 ? _borderRadius - 1 : _borderRadius));
+						new Rectangle(0, 0, Width - 1, Height - (_borderWidth * 2) - 1).Roundify(_borderRadius > 1 ? _borderRadius - 1 : _borderRadius));
 				}
 				else
 				{
 					e.Graphics.FillRectangle(BackColor.ToBrush(), 0, 0, Width, Height);
-					e.Graphics.FillRectangle((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush(), 0, Height - 1, Width, 1);
+					e.Graphics.FillRectangle((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush(), 0, Height - _borderWidth, Width, _borderWidth);
 				}
 			}
 			else
@@ -422,12 +463,12 @@ namespace NovaUI.Controls
 					e.Graphics.FillPath((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush(),
 						new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
 					e.Graphics.FillPath(BackColor.ToBrush(),
-						new Rectangle(1, 1, Width - 3, Height - 3).Roundify(_borderRadius > 1 ? _borderRadius - 1 : _borderRadius));
+						new Rectangle(_borderWidth, _borderWidth, Width - (_borderWidth * 2) - 1, Height - (_borderWidth * 2) - 1).Roundify(_borderRadius > 1 ? _borderRadius - 1 : _borderRadius));
 				}
 				else
 				{
 					e.Graphics.FillRectangle((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush(), 0, 0, Width, Height);
-					e.Graphics.FillRectangle(BackColor.ToBrush(), 1, 1, Width - 2, Height - 2);
+					e.Graphics.FillRectangle(BackColor.ToBrush(), _borderWidth, _borderWidth, Width - (_borderWidth * 2), Height - (_borderWidth * 2));
 				}
 			}
 		}

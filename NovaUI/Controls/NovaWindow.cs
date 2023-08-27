@@ -1,12 +1,13 @@
-﻿using NovaUI.EventManagement.ArgumentContainers;
-using NovaUI.EventManagement.Handlers;
-using NovaUI.Helpers;
-using NovaUI.Helpers.LibMain;
-using System;
+﻿using System;
 using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
+
+using NovaUI.EventManagement.ArgumentContainers;
+using NovaUI.EventManagement.Handlers;
+using NovaUI.Helpers;
+using NovaUI.Helpers.LibMain;
 
 namespace NovaUI.Controls
 {
@@ -772,7 +773,7 @@ namespace NovaUI.Controls
 			const int SC_MINIMIZE = 0xF020;
 			const int SC_RESTORE = 0xF120;
 
-			if (_useAeroSnap)
+			if (_useAeroSnap && !DesignMode)
 			{
 				if (m.Msg == WM_NCCALCSIZE && (int)m.WParam == 1)
 					return;
