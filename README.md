@@ -1,4 +1,10 @@
 # NovaUI
+## Project Information
+[![](https://img.shields.io/badge/.NET_Framework-4.8-blue)](#)
+[![](https://img.shields.io/badge/build-passing-seagreen)](#)
+[![](https://img.shields.io/badge/latest_version-2.0.5-goldenrod)](#)
+[![](https://img.shields.io/badge/status-on_pause-whitesmoke)](#)
+
 ## Description
 An improved (hopefully) version of the [CometUI](https://github.com/Lexz-08/CometUI).
 
@@ -25,4 +31,4 @@ An improved (hopefully) version of the [CometUI](https://github.com/Lexz-08/Come
   - *ToolWindow* - **1.0.0^**
 
 ## Download
-### [NovaUI (1.0.5)](https://github.com/Lexz-08/NovaUI/releases/latest/download/NovaUI.dll)
+[![](https://img.shields.io/badge/download-2.0.5-red)](https://github.com/Lexz-08/NovaUI/releases/latest/download/NovaUI.dll)
