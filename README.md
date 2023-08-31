@@ -3,7 +3,7 @@
 [![](https://img.shields.io/badge/.NET_Framework-4.8-blue)](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48)
 [![](https://img.shields.io/badge/build-passing-seagreen)](#)
 [![](https://img.shields.io/badge/latest_version-2.0.7-goldenrod)](https://github.com/Lexz-08/NovaUI/releases/tag/2.0.7)
-[![](https://img.shields.io/badge/status-fixing_bugs-green)](#)
+[![](https://img.shields.io/badge/status-on_pause-dimgray)](#)
 
 ## Description
 An improved (hopefully) version of the [CometUI](https://github.com/Lexz-08/CometUI).
