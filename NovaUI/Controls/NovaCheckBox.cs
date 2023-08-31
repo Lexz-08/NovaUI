@@ -225,24 +225,31 @@ namespace NovaUI.Controls
 			base.OnPaint(e);
 
 			e.Graphics.Clear(Parent.BackColor);
+			int size = 16;
+			int pos = (Height - size) / 2;
 
 			if (_borderRadius > 0)
 			{
 				e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
 
-				e.Graphics.FillPath((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : _borderColor).ToBrush(), new Rectangle(0, 0, Height - 1, Height - 1).Roundify(_borderRadius));
+				e.Graphics.FillPath((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : _borderColor).ToBrush(),
+					new Rectangle(0, pos, size - 1, size - 1).Roundify(_borderRadius));
 				e.Graphics.FillPath((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : (_mouseHover ? BackColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : BackColor)).ToBrush(),
-					new Rectangle(_borderWidth + 1, _borderWidth + 1, Height - (_borderWidth * 2) - 3, Height - (_borderWidth * 2) - 3).Roundify(_borderRadius > 1 ? _borderRadius - 1 : _borderRadius));
+					new Rectangle(_borderWidth + 1, pos + _borderWidth + 1, size - (_borderWidth * 2) - 3, size - (_borderWidth * 2) - 3).Roundify(_borderRadius > 1 ? _borderRadius - 1 : _borderRadius));
 			}
 			else
 			{
-				e.Graphics.FillRectangle((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : _borderColor).ToBrush(), 0, 0, Height, Height);
+				e.Graphics.FillRectangle((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : _borderColor).ToBrush(), 0, pos, size, size);
 				e.Graphics.FillRectangle((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : (_mouseHover ? BackColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : BackColor)).ToBrush(),
-					_borderWidth, _borderWidth, Height - (_borderWidth * 2), Height - (_borderWidth * 2));
+					_borderWidth, pos + _borderWidth, size - (_borderWidth * 2), size - (_borderWidth * 2));
 			}
 
-			e.Graphics.DrawString(Text, Font, ForeColor.ToBrush(),
-				new Rectangle(Height + 2, 0, Width - Height + 1, Height), Constants.LeftAlign);
+			e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+
+			bool debug = false;
+			Rectangle text = new Rectangle(size + 1, 0, Width - size + 2, Height);
+			if (debug) e.Graphics.FillRectangle(ForeColor.Darker(0.5f).ToBrush(), text);
+			e.Graphics.DrawString(Text, Font, ForeColor.ToBrush(), text, Constants.LeftAlign);
 		}
 	}
 }

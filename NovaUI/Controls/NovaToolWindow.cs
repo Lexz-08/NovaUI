@@ -368,22 +368,22 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseMove(e);
 
-			if (_left.Contains(e.Location) || _right.Contains(e.Location) && _canResize)
+			if ((_left.Contains(e.Location) || _right.Contains(e.Location)) && _canResize)
 			{
 				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeWE");
 				else Cursor = Cursors.SizeWE;
 			}
-			else if (_top.Contains(e.Location) || _bottom.Contains(e.Location) && _canResize)
+			else if ((_top.Contains(e.Location) || _bottom.Contains(e.Location)) && _canResize)
 			{
 				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNS");
 				else Cursor = Cursors.SizeNS;
 			}
-			else if (_topLeft.Contains(e.Location) || _bottomRight.Contains(e.Location) && _canResize)
+			else if ((_topLeft.Contains(e.Location) || _bottomRight.Contains(e.Location)) && _canResize)
 			{
 				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNWSE");
 				else Cursor = Cursors.SizeNWSE;
 			}
-			else if (_topRight.Contains(e.Location) || _bottomLeft.Contains(e.Location) && _canResize)
+			else if ((_topRight.Contains(e.Location) || _bottomLeft.Contains(e.Location)) && _canResize)
 			{
 				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNESW");
 				else Cursor = Cursors.SizeNESW;
