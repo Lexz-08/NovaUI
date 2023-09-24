@@ -1,6 +1,7 @@
 ﻿using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
 
@@ -630,7 +631,13 @@ namespace NovaUI.Controls
 			if (_allowCaption2) text.Width -= _headerHeight;
 			if (_useAeroShadow) text.Y += 1;
 
-			if (ShowIcon) e.Graphics.DrawIcon(Icon, new Rectangle(_resizeWidth + x, _resizeWidth + y + (_useAeroShadow ? 1 : 0), _headerHeight - (_resizeWidth * 2), _headerHeight - (_resizeWidth * 2)));
+			if (ShowIcon)
+			{
+				SmoothingMode smode = e.Graphics.SmoothingMode;
+				e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
+				e.Graphics.DrawIcon(Icon, new Rectangle(_resizeWidth + x, _resizeWidth + y + (_useAeroShadow ? 1 : 0), _headerHeight - (_resizeWidth * 2), _headerHeight - (_resizeWidth * 2)));
+				e.Graphics.SmoothingMode = smode;
+			}
 
 			e.Graphics.DrawString(Text, Font, ForeColor.ToBrush(), text, Constants.LeftAlign);
 

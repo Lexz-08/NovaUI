@@ -40,7 +40,6 @@
 			this.Name = "Main";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
 			this.Text = "Demo";
-			this.UseAeroShadow = false;
 			this.ResumeLayout(false);
 
 		}
