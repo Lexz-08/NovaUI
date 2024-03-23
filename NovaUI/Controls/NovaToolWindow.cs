@@ -345,20 +345,20 @@ namespace NovaUI.Controls
 			if (ClickEvent == null)
 				throw new ArgumentNullException("ClickEvent");
 
+			if (!_allowCaption2 && _allowCaption1)
+			{
+				_allowCaption2 = true;
+				_caption2Color = HoverColor;
+				_caption2Content = Content;
+				_caption2Click = ClickEvent;
+			}
+
 			if (!_allowCaption1)
 			{
 				_allowCaption1 = true;
 				_caption1Color = HoverColor;
 				_caption1Content = Content;
 				_caption1Click = ClickEvent;
-			}
-
-			if (!_allowCaption2)
-			{
-				_allowCaption2 = true;
-				_caption2Color = HoverColor;
-				_caption2Content = Content;
-				_caption2Click = ClickEvent;
 			}
 
 			if (_allowCaption1 && _allowCaption2)
