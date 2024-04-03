@@ -3,6 +3,7 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
+using NovaUI.Enums;
 using NovaUI.Helpers;
 using NovaUI.Helpers.LibMain;
 
@@ -16,6 +17,8 @@ namespace NovaUI.Controls
 		private Color _activeTabForeColor = Constants.TextColor;
 		private Color _tabForeColor = Constants.TextColor.Darker(0.2f);
 		private bool _underlineTabs = false;
+		private int _borderRadius = 6;
+		private TabStyle _tabStyle = TabStyle.Block;
 		private bool _useUserSchemeCursor = true;
 		private Cursor _originalCrsr = Cursors.Hand;
 
@@ -45,6 +48,12 @@ namespace NovaUI.Controls
 		/// </summary>
 		[Category("Property"), Description("Occurs when the value of the TabForeColor property changes.")]
 		public event EventHandler TabForeColorChanged;
+
+		/// <summary>
+		/// Occurs when the value of the <see cref="BorderRadius"/> property changes.
+		/// </summary>
+		[Category("Property"), Description("Occurs when the value of the BorderRadius property changes.")]
+		public event EventHandler BorderRadiusChanged;
 
 		/// <summary>
 		/// Raises the <see cref="ActiveTabColorChanged"/> event.
@@ -83,6 +92,16 @@ namespace NovaUI.Controls
 		protected virtual void OnTabForeColorChanged(EventArgs e)
 		{
 			TabForeColorChanged?.Invoke(this, e);
+			Invalidate();
+		}
+
+		/// <summary>
+		/// Raises the <see cref="BorderRadiusChanged"/> event.
+		/// </summary>
+		/// <param name="e">An EventArgs that contains the event data.</param>
+		protected virtual void OnBorderRadiusChanged(EventArgs e)
+		{
+			BorderRadiusChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
@@ -134,6 +153,31 @@ namespace NovaUI.Controls
 		{
 			get => _underlineTabs;
 			set { _underlineTabs = value; Invalidate(); }
+		}
+
+		/// <summary>
+		/// Gets or sets the border radius of the tabs if <see cref="TabStyle"/> is set to:<br/>
+		/// <list type="bullet">
+		///		<item>RadialBlock</item>
+		///		<item>RadialBox</item>
+		///		<item>RadialUnderline</item>
+		/// </list>
+		/// </summary>
+		[Category("Appearance"), Description("Gets or sets the border radius of the tabs if TabStyle is set to:\n\n\t-RadialBlock\n\t-RadialBox\n\t-RadialUnderline")]
+		public int BorderRadius
+		{
+			get => _borderRadius;
+			set { _borderRadius = value; OnBorderRadiusChanged(EventArgs.Empty); }
+		}
+
+		/// <summary>
+		/// Gets or sets how the tabs are drawn.
+		/// </summary>
+		[Category("Appearance"), Description("Gets or setes how the tabs are drawn.")]
+		public TabStyle TabStyle
+		{
+			get => _tabStyle;
+			set { _tabStyle = value; Invalidate(); }
 		}
 
 		/// <summary>
@@ -242,16 +286,76 @@ namespace NovaUI.Controls
 				bool activeTab = i == SelectedIndex;
 				bool containsMouse = tab.Contains(PointToClient(MousePosition));
 
-				if (_underlineTabs)
-					e.Graphics.FillRectangle((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(),
-						tab.X, tab.Y + tab.Height - 4, tab.Width, 4);
-				else e.Graphics.FillRectangle((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(), tab);
+				switch (_tabStyle)
+				{
+					case TabStyle.Block:
+						e.Graphics.FillRectangle((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(), tab);
+						break;
+					case TabStyle.Box:
+						e.Graphics.FillRectangle((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(), tab);
+						e.Graphics.FillRectangle(Parent.BackColor.Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(),
+							tab.X + 1, tab.Y + 1, tab.Width - 2, tab.Height - 2);
+						break;
+					case TabStyle.Underline:
+						e.Graphics.FillRectangle((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(),
+							tab.X + 4, tab.Y + tab.Height - 2, tab.Width - 8, 2);
+						break;
+					case TabStyle.RadialBlock:
+						if (_borderRadius > 0)
+						{
+							e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+							e.Graphics.FillPath((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseHover && containsMouse ? 0.1f : 0).ToBrush(),
+								new Rectangle(tab.X, tab.Y, tab.Width - 1, tab.Height - 1).RoundifyCorners(_borderRadius, i == 0, i == TabPages.Count - 1, i == 0, i == TabPages.Count - 1));
+						}
+						else e.Graphics.FillRectangle((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(), tab);
+						break;
+					case TabStyle.RadialBox:
+						if (_borderRadius > 0)
+						{
+							e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+							e.Graphics.FillPath((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseHover && containsMouse ? 0.1f : 0).ToBrush(),
+								new Rectangle(tab.X, tab.Y, tab.Width - 1, tab.Height - 1).RoundifyCorners(_borderRadius, i == 0, i == TabPages.Count - 1, i == 0, i == TabPages.Count - 1));
+							e.Graphics.FillPath(Parent.BackColor.Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseHover && containsMouse ? 0.1f : 0).ToBrush(),
+								new Rectangle(tab.X + 1, tab.Y + 1, tab.Width - 3, tab.Height - 3).RoundifyCorners(_borderRadius > 1 ? _borderRadius - 1 : _borderRadius, i == 0, i == TabPages.Count - 1, i == 0, i == TabPages.Count - 1));
+						}
+						else
+						{
+							e.Graphics.FillRectangle((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(), tab);
+							e.Graphics.FillRectangle(Parent.BackColor.Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(),
+								tab.X + 1, tab.Y + 1, tab.Width - 2, tab.Height - 2);
+						}
+						break;
+					case TabStyle.RadialUnderline:
+						if (_borderRadius > 0)
+						{
+							e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
+							e.Graphics.FillPath((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(),
+								new Rectangle(tab.X + 5, tab.Y + 1, tab.Width - 11, tab.Height - 3).Roundify(_borderRadius));
+							e.Graphics.FillPath(Parent.BackColor.Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(),
+								new Rectangle(tab.X + 4, tab.Y, tab.Width - 9, tab.Height - 5).Roundify(_borderRadius));
+						}
+						else e.Graphics.FillRectangle((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(),
+							tab.X + 4, tab.Y + tab.Height - 2, tab.Width - 8, 2);
+						break;
+				}
 
-				if (_underlineTabs)
-					e.Graphics.DrawString(TabPages[i].Text, Font, (activeTab ? _activeTabForeColor : _tabForeColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(),
-						new Rectangle(tab.X, tab.Y, tab.Width, tab.Height - 4), Constants.CenterAlign);
-				else e.Graphics.DrawString(TabPages[i].Text, Font, (activeTab ? _activeTabForeColor : _tabForeColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(),
-					new Rectangle(tab.X, tab.Y, tab.Width, tab.Height), Constants.CenterAlign);
+				switch (_tabStyle)
+				{
+					case TabStyle.Block:
+					case TabStyle.Box:
+					case TabStyle.RadialBlock:
+					case TabStyle.RadialBox:
+						e.Graphics.DrawString(TabPages[i].Text, Font, (activeTab ? _activeTabForeColor : _tabForeColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(),
+							new Rectangle(tab.X, tab.Y + 1, tab.Width, tab.Height),
+							Constants.CenterAlign);
+						break;
+					case TabStyle.Underline:
+					case TabStyle.RadialUnderline:
+						e.Graphics.DrawString(TabPages[i].Text, Font, (activeTab ? _activeTabForeColor : _tabForeColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(),
+							new Rectangle(tab.X, tab.Y - 2, tab.Width, tab.Height),
+							Constants.CenterAlign);
+						break;
+				}
 			}
 		}
 

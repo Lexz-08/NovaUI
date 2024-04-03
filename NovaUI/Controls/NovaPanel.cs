@@ -123,16 +123,40 @@ namespace NovaUI.Controls
 			if (_borderRadius > 0)
 			{
 				e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-
-				if (_borderWidth > 0) e.Graphics.FillPath(_borderColor.ToBrush(), new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
-				e.Graphics.FillPath(BackColor.ToBrush(),
-					new Rectangle(_borderWidth + 1, _borderWidth + 1, Width - (_borderWidth * 2) - 3, Height - (_borderWidth * 2) - 3).Roundify(_borderRadius > 1 ? _borderRadius - 1 : _borderRadius));
+				if (_borderWidth > 0)
+				{
+					e.Graphics.FillPath(BackColor.ToBrush(),
+						new Rectangle(_borderWidth - 1, _borderWidth - 1, Width - (_borderWidth * 2) + 1, Height - (_borderWidth * 2) + 1)
+						.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0).Roundify(Math.Max(1, _borderRadius - _borderWidth)));
+					for (int i = 0; i < _borderWidth; i++)
+						e.Graphics.DrawPath(new Pen(_borderColor.ToBrush()),
+							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1)
+						.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0).Roundify(_borderRadius - i));
+				}
+				else
+				{
+					e.Graphics.FillPath(BackColor.ToBrush(),
+						new Rectangle(0, 0, Width - 1, Height - 1)
+						.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0).Roundify(_borderRadius));
+					e.Graphics.DrawPath(new Pen(_borderColor.ToBrush()),
+						new Rectangle(0, 0, Width - 1, Height - 1)
+						.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0).Roundify(_borderRadius));
+				}
 			}
 			else
 			{
-				e.Graphics.FillRectangle(_borderColor.ToBrush(), 0, 0, Width, Height);
-				e.Graphics.FillRectangle(BackColor.ToBrush(),
-					_borderWidth, _borderWidth, Width - (_borderWidth * 2), Height - (_borderWidth * 2));
+				if (_borderWidth > 0)
+				{
+					e.Graphics.FillRectangle(BackColor.ToBrush(),
+						new Rectangle(_borderWidth, _borderWidth, Width - (_borderWidth * 2), Height - (_borderWidth * 2))
+						.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0));
+					for (int i = 0; i < _borderWidth; i++)
+						e.Graphics.DrawRectangle(new Pen(_borderColor.ToBrush()),
+							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1)
+						.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0));
+				}
+				else e.Graphics.FillRectangle(BackColor.ToBrush(),
+						new Rectangle(0, 0, Width, Height));
 			}
 		}
 	}

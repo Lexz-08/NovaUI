@@ -226,30 +226,47 @@ namespace NovaUI.Controls
 
 			e.Graphics.Clear(Parent.BackColor);
 			int size = 16;
-			int pos = (Height - size) / 2;
+			int pos = (Height - size) / 2 + 1;
 
 			if (_borderRadius > 0)
 			{
 				e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-
-				e.Graphics.FillPath((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : _borderColor).ToBrush(),
-					new Rectangle(0, pos, size - 1, size - 1).Roundify(_borderRadius));
-				e.Graphics.FillPath((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : (_mouseHover ? BackColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : BackColor)).ToBrush(),
-					new Rectangle(_borderWidth + 1, pos + _borderWidth + 1, size - (_borderWidth * 2) - 3, size - (_borderWidth * 2) - 3).Roundify(_borderRadius > 1 ? _borderRadius - 1 : _borderRadius));
+				if (_borderWidth > 0)
+				{
+					e.Graphics.FillPath((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : (_mouseHover ? BackColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : BackColor)).ToBrush(),
+						new Rectangle(_borderWidth - 1, pos + _borderWidth - 1, size - (_borderWidth * 2) + 1, size - (_borderWidth * 2) + 1).Roundify(Math.Max(1, _borderRadius - _borderWidth)));
+					for (int i = 0; i < _borderWidth; i++)
+						e.Graphics.DrawPath(new Pen((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : _borderColor).ToBrush()),
+							new Rectangle(i, pos + i, size - (i * 2) - 1, size - (i * 2) - 1).Roundify(_borderRadius - i));
+				}
+				else
+				{
+					e.Graphics.FillPath((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : (_mouseHover ? BackColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : BackColor)).ToBrush(),
+						new Rectangle(0, pos, size - 1, size - 1).Roundify(_borderRadius));
+					e.Graphics.DrawPath(new Pen((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : _borderColor).ToBrush()),
+						new Rectangle(0, pos, size - 1, size - 1).Roundify(_borderRadius));
+				}
 			}
 			else
 			{
-				e.Graphics.FillRectangle((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : _borderColor).ToBrush(), 0, pos, size, size);
-				e.Graphics.FillRectangle((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : (_mouseHover ? BackColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : BackColor)).ToBrush(),
-					_borderWidth, pos + _borderWidth, size - (_borderWidth * 2), size - (_borderWidth * 2));
+				if (_borderWidth > 0)
+				{
+					e.Graphics.FillRectangle((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : (_mouseHover ? BackColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : BackColor)).ToBrush(),
+						new Rectangle(_borderWidth, pos + _borderWidth, size - (_borderWidth * 2), size - (_borderWidth * 2)));
+					for (int i = 0; i < _borderWidth; i++)
+						e.Graphics.DrawRectangle(new Pen((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : _borderColor).ToBrush()),
+							new Rectangle(i, pos + i, size - (i * 2) - 1, size - (i * 2) - 1));
+				}
+				else e.Graphics.FillRectangle((Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) : (_mouseHover ? BackColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : BackColor)).ToBrush(),
+						new Rectangle(0, pos, size, size));
 			}
 
 			e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
-			bool debug = false;
-			Rectangle text = new Rectangle(size + 1, 0, Width - size + 2, Height);
-			if (debug) e.Graphics.FillRectangle(ForeColor.Darker(0.5f).ToBrush(), text);
-			e.Graphics.DrawString(Text, Font, ForeColor.ToBrush(), text, Constants.LeftAlign);
+			if (Checked) e.Graphics.DrawString("", new Font("Segoe MDL2 Assets", size * 0.75f), Parent.BackColor.ToBrush(),
+				new Rectangle(-1, pos + 1, size, size), Constants.CenterAlign);
+			e.Graphics.DrawString(Text, Font, ForeColor.ToBrush(),
+				new Rectangle(size + 1, 0, Width - size + 2, Height), Constants.LeftAlign);
 		}
 	}
 }

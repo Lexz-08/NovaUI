@@ -3,7 +3,6 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
-using NovaUI.Enums;
 using NovaUI.Helpers;
 using NovaUI.Helpers.LibMain;
 
@@ -14,15 +13,12 @@ namespace NovaUI.Controls
 	{
 		private Color _borderColor = Constants.BorderColor;
 		private Color _progressColor = Constants.AccentColor;
-		private int _borderWidth = 2;
+		private int _borderWidth = 1;
 		private int _borderRadius = 6;
-		private int _value = 0;
+		private int _value = 50;
 		private int _defValue = 50;
 		private int _maximum = 100;
 		private int _minimum = 0;
-		private bool _showValue = false;
-		private ProgressValueAlignment _valueAlign = ProgressValueAlignment.Center;
-		private string _font = "Segoe UI";
 
 		/// <summary>
 		/// Occurs when the value of the <see cref="BorderColor"/> property changes.
@@ -216,35 +212,9 @@ namespace NovaUI.Controls
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets a value indicating whether the control will display its current value.
-		/// </summary>
-		[Category("Appearance"), Description("Gets or sets a value indicating whether the control will display its current value.")]
-		public bool ShowValue
-		{
-			get => _showValue;
-			set { _showValue = value; Invalidate(); }
-		}
-
-		/// <summary>
-		/// Gets or sets where the control's current value is displayed, if <see cref="ShowValue"/> is set to <see langword="true"/>.
-		/// </summary>
-		[Category("Appearance"), Description("Gets or sets where the control's current value is displayed, if ShowValue is set to true.")]
-		public ProgressValueAlignment ValueAlign
-		{
-			get => _valueAlign;
-			set { _valueAlign = value; Invalidate(); }
-		}
-
-		/// <summary>
-		/// Gets or sets the font name associated with the control font.
-		/// </summary>
-		[Category("Appearance"), Description("Gets or sets the font name associated with the control font.")]
-		public new string Font
-		{
-			get => _font;
-			set { _font = value; OnFontChanged(EventArgs.Empty); Invalidate(); }
-		}
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+		public override Font Font => new Font("Segoe UI", 0.1f);
 
 		/// <summary>
 		/// Replaced by the <see cref="Value"/> property.
@@ -262,7 +232,6 @@ namespace NovaUI.Controls
 				ControlStyles.OptimizedDoubleBuffer, true);
 			DoubleBuffered = true;
 
-			Font = "Segoe UI";
 			BackColor = Constants.PrimaryColor;
 			ForeColor = Constants.TextColor;
 			Size = new Size(200, 12);
@@ -290,49 +259,62 @@ namespace NovaUI.Controls
 			e.Graphics.Clear(Parent.BackColor);
 			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
 
-			Rectangle border = new Rectangle(0, 0, Width - 1, Height - 1);
-			if (_showValue)
-				switch (_valueAlign)
-				{
-					case ProgressValueAlignment.Left:
-						border.X = 30;
-						border.Width -= 30;
-						break;
-					case ProgressValueAlignment.Right:
-						border.Width -= 30;
-						break;
-				}
-
-			float percent = _value / (float)(_maximum - _minimum);
-			Rectangle progress = new Rectangle(border.X + _borderWidth + 1, border.Y + _borderWidth + 1, (int)((border.Width - (_borderWidth * 2)) * percent) - 2, border.Height - (_borderWidth * 2) - 2);
+			float percent = (_value - _minimum) / (float)(_maximum - _minimum);
+			int width = (int)((Width - (_borderWidth * 2) - 1) * percent);
 
 			if (_borderRadius > 0)
 			{
 				e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-
-				int radius;
-				if (_value > 2)
+				if (_borderWidth > 0)
 				{
-					if (_borderRadius > 1)
-						radius = _borderRadius - 1;
-					else radius = _borderRadius;
-				}
-				else radius = 0;
+					e.Graphics.FillPath(BackColor.ToBrush(),
+						new Rectangle(_borderWidth - 1, _borderWidth - 1, Width - (_borderWidth * 2) + 1, Height - (_borderWidth * 2) + 1).Roundify(Math.Max(1, _borderRadius - _borderWidth)));
+					for (int i = 0; i < _borderWidth; i++)
+						e.Graphics.DrawPath(new Pen(_borderColor.ToBrush()),
+							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1).Roundify(_borderRadius - i));
 
-				e.Graphics.FillPath(_borderColor.ToBrush(), border.Roundify(_borderRadius));
-				e.Graphics.FillPath(BackColor.ToBrush(),
-					new Rectangle(border.X + _borderWidth, border.Y + _borderWidth, border.Width - (_borderWidth * 2), border.Height - (_borderWidth * 2)).Roundify(_borderRadius > 1 ? _borderRadius - 1 : 0));
-				if (radius > 0)
-					e.Graphics.FillPath(_progressColor.ToBrush(), progress.Roundify(radius));
+					e.Graphics.SetClip(new Rectangle(_borderWidth, _borderWidth, (int)((Width - (_borderWidth * 2)) * percent), Height - (_borderWidth * 2)));
+					e.Graphics.FillPath(_progressColor.ToBrush(),
+						new Rectangle(_borderWidth + 1, _borderWidth + 1, Width - (_borderWidth * 2) - 3, Height - (_borderWidth * 2) - 3).Roundify(_borderRadius - _borderWidth));
+					e.Graphics.DrawPath(new Pen(_progressColor.ToBrush()),
+						new Rectangle(_borderWidth + 1, _borderWidth + 1, Width - (_borderWidth * 2) - 3, Height - (_borderWidth * 2) - 4).Roundify(_borderRadius - _borderWidth));
+				}
 				else
-					e.Graphics.FillRectangle(_progressColor.ToBrush(), progress);
+				{
+					e.Graphics.FillPath(BackColor.ToBrush(),
+						new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
+					e.Graphics.DrawPath(new Pen(BackColor.ToBrush()),
+						new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
+
+					e.Graphics.SetClip(new Rectangle(0, 0, (int)(Width * percent), Height));
+					e.Graphics.FillPath(_progressColor.ToBrush(),
+						new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
+					e.Graphics.DrawPath(new Pen(_progressColor.ToBrush()),
+						new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
+				}
 			}
 			else
 			{
-				e.Graphics.FillRectangle(_borderColor.ToBrush(), border);
-				e.Graphics.FillRectangle(BackColor.ToBrush(),
-					new Rectangle(border.X + _borderWidth, border.Y + _borderWidth, border.Width - (_borderWidth * 2), border.Height - (_borderWidth * 2)));
-				e.Graphics.FillRectangle(_progressColor.ToBrush(), progress);
+				if (_borderWidth > 0)
+				{
+					e.Graphics.FillRectangle(BackColor.ToBrush(),
+						new Rectangle(_borderWidth, _borderWidth, Width - (_borderWidth * 2), Height - (_borderWidth * 2)));
+					for (int i = 0; i < _borderWidth; i++)
+						e.Graphics.DrawRectangle(new Pen(_borderColor.ToBrush()),
+							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1));
+
+					e.Graphics.SetClip(new Rectangle(_borderWidth, _borderWidth, (int)((Width - (_borderWidth * 2)) * percent), Height - (_borderWidth * 2)));
+					e.Graphics.FillRectangle(_progressColor.ToBrush(), new Rectangle(_borderWidth + 1, _borderWidth + 1, Width - ((_borderWidth + 1) * 2), Height - ((_borderWidth + 1) * 2)));
+				}
+				else
+				{
+					e.Graphics.FillRectangle(BackColor.ToBrush(),
+						new Rectangle(0, 0, Width, Height));
+
+					e.Graphics.SetClip(new Rectangle(0, 0, (int)(Width * percent), Height));
+					e.Graphics.FillRectangle(_progressColor.ToBrush(),
+						new Rectangle(0, 0, Width, Height));
+				}
 			}
 		}
 	}

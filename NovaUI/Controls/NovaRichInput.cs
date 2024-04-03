@@ -629,16 +629,20 @@ namespace NovaUI.Controls
 				if (_borderRadius > 0)
 				{
 					e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-
-					e.Graphics.FillPath((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush(),
-						new Rectangle(1, 2, Width - (_borderWidth * 2) - 1, Height - (_borderWidth * 2) - 1).Roundify(_borderRadius));
+					for (int i = 0; i < Math.Max(1, _borderWidth); i++)
+						e.Graphics.DrawPath(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
+							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1).Roundify(_borderRadius - i));
 					e.Graphics.FillPath(BackColor.ToBrush(),
-						new Rectangle(0, 0, Width - 1, Height - (_borderWidth * 2) - 1).Roundify(_borderRadius > 1 ? _borderRadius - 1 : _borderRadius));
+						new Rectangle(0, 0, Width - 1, Height - Math.Max(1, _borderWidth) - 1).Roundify(_borderRadius));
+					e.Graphics.DrawPath(new Pen(BackColor.ToBrush()),
+						new Rectangle(0, 0, Width - 1, Height - Math.Max(1, _borderWidth) - 1).Roundify(_borderRadius));
 				}
 				else
 				{
-					e.Graphics.FillRectangle(BackColor.ToBrush(), 0, 0, Width, Height);
-					e.Graphics.FillRectangle((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush(), 0, Height - _borderWidth, Width, _borderWidth);
+					e.Graphics.FillRectangle(BackColor.ToBrush(),
+						new Rectangle(0, 0, Width, Height - Math.Max(1, _borderWidth)));
+					e.Graphics.DrawRectangle(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
+						new Rectangle(0, Height - 1, Width, Math.Max(1, _borderWidth)));
 				}
 			}
 			else
@@ -646,16 +650,39 @@ namespace NovaUI.Controls
 				if (_borderRadius > 0)
 				{
 					e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-
-					e.Graphics.FillPath((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush(),
-						new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
-					e.Graphics.FillPath(BackColor.ToBrush(),
-						new Rectangle(_borderWidth, _borderWidth, Width - (_borderWidth * 2) - 1, Height - (_borderWidth * 2) - 1).Roundify(_borderRadius > 1 ? _borderRadius - 1 : _borderRadius));
+					if (_borderWidth > 0)
+					{
+						e.Graphics.FillPath(BackColor.ToBrush(),
+							new Rectangle(_borderWidth - 1, _borderWidth - 1, Width - (_borderWidth * 2) + 1, Height - (_borderWidth * 2) + 1).Roundify(Math.Max(1, _borderRadius - _borderWidth)));
+						for (int i = 0; i < _borderWidth; i++)
+							e.Graphics.DrawPath(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
+								new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1).Roundify(_borderRadius - i));
+					}
+					else
+					{
+						e.Graphics.FillPath(BackColor.ToBrush(),
+							new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
+						e.Graphics.DrawPath(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
+							new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
+					}
 				}
 				else
 				{
-					e.Graphics.FillRectangle((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush(), 0, 0, Width, Height);
-					e.Graphics.FillRectangle(BackColor.ToBrush(), _borderWidth, _borderWidth, Width - (_borderWidth * 2), Height - (_borderWidth * 2));
+					if (_borderWidth > 0)
+					{
+						e.Graphics.FillRectangle(BackColor.ToBrush(),
+							new Rectangle(_borderWidth, _borderWidth, Width - (_borderWidth * 2), Height - (_borderWidth * 2)));
+						for (int i = 0; i < _borderWidth; i++)
+							e.Graphics.DrawRectangle(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
+								new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1));
+					}
+					else
+					{
+						e.Graphics.FillRectangle(BackColor.ToBrush(),
+							new Rectangle(1, 1, Width - 2, Height - 2));
+						e.Graphics.DrawRectangle(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
+							new Rectangle(0, 0, Width - 1, Height - 1));
+					}
 				}
 			}
 		}

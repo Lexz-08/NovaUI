@@ -1,6 +1,9 @@
-﻿using System.Drawing;
+﻿using System;
+using System.ComponentModel;
+using System.Drawing;
 using System.Windows.Forms;
 
+using NovaUI.Helpers;
 using NovaUI.Helpers.LibMain;
 
 namespace NovaUI.Controls
