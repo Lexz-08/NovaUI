@@ -306,6 +306,8 @@ namespace NovaUI.Controls
 							e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
 							e.Graphics.FillPath((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseHover && containsMouse ? 0.1f : 0).ToBrush(),
 								new Rectangle(tab.X, tab.Y, tab.Width - 1, tab.Height - 1).RoundifyCorners(_borderRadius, i == 0, i == TabPages.Count - 1, i == 0, i == TabPages.Count - 1));
+							e.Graphics.DrawPath(new Pen((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseHover && containsMouse ? 0.1f : 0).ToBrush()),
+								new Rectangle(tab.X, tab.Y, tab.Width - 1, tab.Height - 1).RoundifyCorners(_borderRadius, i == 0, i == TabPages.Count - 1, i == 0, i == TabPages.Count - 1));
 						}
 						else e.Graphics.FillRectangle((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(), tab);
 						break;
@@ -313,10 +315,10 @@ namespace NovaUI.Controls
 						if (_borderRadius > 0)
 						{
 							e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-							e.Graphics.FillPath((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseHover && containsMouse ? 0.1f : 0).ToBrush(),
-								new Rectangle(tab.X, tab.Y, tab.Width - 1, tab.Height - 1).RoundifyCorners(_borderRadius, i == 0, i == TabPages.Count - 1, i == 0, i == TabPages.Count - 1));
 							e.Graphics.FillPath(Parent.BackColor.Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseHover && containsMouse ? 0.1f : 0).ToBrush(),
 								new Rectangle(tab.X + 1, tab.Y + 1, tab.Width - 3, tab.Height - 3).RoundifyCorners(_borderRadius > 1 ? _borderRadius - 1 : _borderRadius, i == 0, i == TabPages.Count - 1, i == 0, i == TabPages.Count - 1));
+							e.Graphics.DrawPath(new Pen((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseHover && containsMouse ? 0.1f : 0).ToBrush()),
+								new Rectangle(tab.X, tab.Y, tab.Width - 1, tab.Height - 1).RoundifyCorners(_borderRadius, i == 0, i == TabPages.Count - 1, i == 0, i == TabPages.Count - 1));
 						}
 						else
 						{
@@ -329,10 +331,13 @@ namespace NovaUI.Controls
 						if (_borderRadius > 0)
 						{
 							e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-							e.Graphics.FillPath((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(),
-								new Rectangle(tab.X + 5, tab.Y + 1, tab.Width - 11, tab.Height - 3).Roundify(_borderRadius));
+							for (int j = 0; j < 2; j++)
+								e.Graphics.DrawPath(new Pen((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush()),
+									new Rectangle(tab.X + 4 + j, tab.Y + j, tab.Width - (j * 2) - 9, tab.Height - (j * 2) - 1).Roundify(_borderRadius - j));
 							e.Graphics.FillPath(Parent.BackColor.Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(),
-								new Rectangle(tab.X + 4, tab.Y, tab.Width - 9, tab.Height - 5).Roundify(_borderRadius));
+								new Rectangle(tab.X + 4, tab.Y, tab.Width - 9, tab.Height - 3).Roundify(_borderRadius));
+							e.Graphics.DrawPath(new Pen(Parent.BackColor.Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush()),
+								new Rectangle(tab.X + 4, tab.Y, tab.Width - 9, tab.Height - 3).Roundify(_borderRadius));
 						}
 						else e.Graphics.FillRectangle((activeTab ? _activeTabColor : _tabColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(),
 							tab.X + 4, tab.Y + tab.Height - 2, tab.Width - 8, 2);
@@ -352,7 +357,7 @@ namespace NovaUI.Controls
 					case TabStyle.Underline:
 					case TabStyle.RadialUnderline:
 						e.Graphics.DrawString(TabPages[i].Text, Font, (activeTab ? _activeTabForeColor : _tabForeColor).Lighter(_mouseHover && containsMouse ? 0.1f : 0).Darker(_mouseDown && containsMouse ? 0.1f : 0).ToBrush(),
-							new Rectangle(tab.X, tab.Y - 2, tab.Width, tab.Height),
+							new Rectangle(tab.X, tab.Y - 1, tab.Width, tab.Height),
 							Constants.CenterAlign);
 						break;
 				}

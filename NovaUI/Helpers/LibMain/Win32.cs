@@ -1,7 +1,8 @@
-﻿using Microsoft.Win32;
-using System;
+﻿using System;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
+
+using Microsoft.Win32;
 
 namespace NovaUI.Helpers.LibMain
 {

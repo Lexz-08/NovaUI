@@ -25,7 +25,7 @@ namespace NovaUI.Helpers
 			if (topLeft) path.AddArc(rect.X, rect.Y, radius, radius, 180, 90);
 			else
 			{
-				path.AddLine(rect.X, rect.Y - radius, rect.X, rect.Y);
+				path.AddLine(rect.X, rect.Y + radius, rect.X, rect.Y);
 				path.AddLine(rect.X, rect.Y, rect.X + radius, rect.Y);
 			}
 

@@ -1,5 +1,6 @@
-﻿using NovaUI.Controls;
-using System.Windows.Forms;
+﻿using System.Windows.Forms;
+
+using NovaUI.Controls;
 
 namespace NovaUI.Enums
 {

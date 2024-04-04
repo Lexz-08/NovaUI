@@ -527,7 +527,7 @@ namespace NovaUI.Controls
 			{
 				SmoothingMode smode = e.Graphics.SmoothingMode;
 				e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
-				e.Graphics.DrawIcon(Icon, new Rectangle(_resizeWidth, _resizeWidth + (_useAeroShadow ? 1 : 0), _headerHeight - (_resizeWidth * 2), _headerHeight - (_resizeWidth * 2)));
+				e.Graphics.DrawImage(Icon.ToBitmap(), new Rectangle(_resizeWidth, _resizeWidth + (_useAeroShadow ? 1 : 0), _headerHeight - (_resizeWidth * 2), _headerHeight - (_resizeWidth * 2)));
 				e.Graphics.SmoothingMode = smode;
 			}
 
