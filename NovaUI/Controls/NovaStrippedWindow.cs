@@ -3,11 +3,10 @@ using System.ComponentModel;
 using System.Drawing;
 using System.Windows.Forms;
 
+using NovaUI.EventManagement.ArgumentContainers;
+using NovaUI.EventManagement.Handlers;
 using NovaUI.Helpers;
 using NovaUI.Helpers.LibMain;
-
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.ToolTip;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.Window;
 
 namespace NovaUI.Controls
 {
@@ -38,12 +37,28 @@ namespace NovaUI.Controls
 		public event EventHandler BorderColorChanged;
 
 		/// <summary>
+		/// Occurs when the window state of the form changes.
+		/// </summary>
+		[Category("Property"), Description("Occurs when the window state of the form changes.")]
+		public event WindowStateChangedEventHandler WindowStateChanged;
+
+		/// <summary>
 		/// Raises the <see cref="BorderColorChanged"/> event.
 		/// </summary>
 		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderColorChanged(EventArgs e)
 		{
 			BorderColorChanged?.Invoke(this, e);
+			Invalidate();
+		}
+
+		/// <summary>
+		/// Raises the <see cref="WindowStateChanged"/> event.
+		/// </summary>
+		/// <param name="e">A WindowStateChangedEventArgs that contains the event data specifying the previous and current window state of the form.</param>
+		protected virtual void OnWindowStateChanged(WindowStateChangedEventArgs e)
+		{
+			WindowStateChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
@@ -153,7 +168,12 @@ namespace NovaUI.Controls
 		public new FormWindowState WindowState
 		{
 			get => base.WindowState;
-			set { base.WindowState = value; Invalidate(); }
+			set
+			{
+				FormWindowState prevState = base.WindowState;
+				base.WindowState = value;
+				if (value != prevState) OnWindowStateChanged(new WindowStateChangedEventArgs(prevState, value));
+			}
 		}
 
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -328,6 +348,24 @@ namespace NovaUI.Controls
 			_bottomLeft = new Rectangle(0, Height - _resizeWidth, _resizeWidth, _resizeWidth);
 			_bottom = new Rectangle(_resizeWidth, Height - _resizeWidth, Width - (_resizeWidth * 2), _resizeWidth);
 			_bottomRight = new Rectangle(Width - _resizeWidth, Height - _resizeWidth, _resizeWidth, _resizeWidth);
+		}
+
+		protected override void OnResizeEnd(EventArgs e)
+		{
+			base.OnResizeEnd(e);
+
+			if (_canResize && !_useAeroSnap)
+			{
+				Point screenLoc = Screen.FromPoint(Location).Bounds.Location;
+				int screenY = screenLoc.Y;
+
+				//bool windowSnap = Location.Y <= screenY + 6 && Location.Y >= screenY;
+				//bool mouseSnap = MousePosition.Y <= screenY + 6 && MousePosition.Y >= screenY;
+				bool topSnap = (Location.Y <= screenY + 6 && Location.Y >= screenY) ||
+					(MousePosition.Y <= screenY + 6 && Location.Y >= screenY);
+
+				if (topSnap) WindowState = FormWindowState.Maximized;
+			}
 		}
 
 		protected override void OnActivated(EventArgs e)

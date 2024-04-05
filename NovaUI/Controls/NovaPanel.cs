@@ -131,16 +131,14 @@ namespace NovaUI.Controls
 					for (int i = 0; i < _borderWidth; i++)
 						e.Graphics.DrawPath(new Pen(_borderColor.ToBrush()),
 							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1)
-						.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0).Roundify(_borderRadius - i));
+							.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0).Roundify(_borderRadius - i));
 				}
 				else
 				{
 					e.Graphics.FillPath(BackColor.ToBrush(),
-						new Rectangle(0, 0, Width - 1, Height - 1)
-						.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0).Roundify(_borderRadius));
-					e.Graphics.DrawPath(new Pen(_borderColor.ToBrush()),
-						new Rectangle(0, 0, Width - 1, Height - 1)
-						.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0).Roundify(_borderRadius));
+						new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
+					e.Graphics.DrawPath(new Pen(BackColor.ToBrush()),
+						new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
 				}
 			}
 			else
@@ -153,7 +151,7 @@ namespace NovaUI.Controls
 					for (int i = 0; i < _borderWidth; i++)
 						e.Graphics.DrawRectangle(new Pen(_borderColor.ToBrush()),
 							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1)
-						.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0));
+							.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0));
 				}
 				else e.Graphics.FillRectangle(BackColor.ToBrush(),
 						new Rectangle(0, 0, Width, Height));
