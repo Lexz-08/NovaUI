@@ -11,6 +11,7 @@ using NovaUI.Helpers.LibMain;
 
 namespace NovaUI.Controls
 {
+	[DefaultEvent("Load")]
 	public class NovaToolWindow : Form
 	{
 		private Color _headerColor = Constants.SecondaryColor;
@@ -553,7 +554,7 @@ namespace NovaUI.Controls
 			_bottom = new Rectangle(_resizeWidth, Height - _resizeWidth, Width - (_resizeWidth * 2), _resizeWidth);
 			_bottomRight = new Rectangle(Width - _resizeWidth, Height - _resizeWidth, _resizeWidth, _resizeWidth);
 
-			Rectangle text = new Rectangle(_resizeWidth, _resizeWidth, Width - (_resizeWidth * 2), _headerHeight - (_resizeWidth * 2));
+			Rectangle text = new Rectangle(_resizeWidth, _resizeWidth - 1, Width - (_resizeWidth * 2), _headerHeight - (_resizeWidth * 2));
 			if (ShowIcon)
 			{
 				text.X += _headerHeight - (_resizeWidth * 2) + 2;
@@ -567,7 +568,7 @@ namespace NovaUI.Controls
 			{
 				SmoothingMode smode = e.Graphics.SmoothingMode;
 				e.Graphics.SmoothingMode = SmoothingMode.HighQuality;
-				e.Graphics.DrawImage(Icon.ToBitmap(), new Rectangle(_resizeWidth, _resizeWidth + (_useAeroShadow ? 1 : 0), _headerHeight - (_resizeWidth * 2), _headerHeight - (_resizeWidth * 2)));
+				e.Graphics.DrawImage(Icon.ToBitmap(), new Rectangle(_resizeWidth, _resizeWidth + (_useAeroShadow ? 1 : 0) - 1, _headerHeight - (_resizeWidth * 2), _headerHeight - (_resizeWidth * 2)));
 				e.Graphics.SmoothingMode = smode;
 			}
 

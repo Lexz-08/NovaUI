@@ -1,4 +1,5 @@
-﻿using System.Drawing;
+﻿using System.ComponentModel;
+using System.Drawing;
 using System.Windows.Forms;
 
 using NovaUI.Helpers.LibMain;
@@ -6,6 +7,7 @@ using NovaUI.Helpers.LibMain;
 namespace NovaUI.Controls
 {
 	[ToolboxBitmap(typeof(Label))]
+	[DefaultEvent("Click")]
 	public class NovaLabel : Label
 	{
 		public NovaLabel()

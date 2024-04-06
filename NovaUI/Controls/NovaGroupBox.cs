@@ -9,6 +9,7 @@ using NovaUI.Helpers.LibMain;
 namespace NovaUI.Controls
 {
 	[ToolboxBitmap(typeof(GroupBox))]
+	[DefaultEvent("Click")]
 	public class NovaGroupBox : GroupBox
 	{
 		private Color _borderColor = Constants.BorderColor;

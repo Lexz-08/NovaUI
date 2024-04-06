@@ -11,6 +11,7 @@ using NovaUI.Helpers.LibMain;
 
 namespace NovaUI.Controls
 {
+	[DefaultEvent("Load")]
 	public class NovaStrippedWindow : Form
 	{
 		private Color _borderColor = Constants.BorderColor;

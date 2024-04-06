@@ -9,6 +9,7 @@ using NovaUI.Helpers.LibMain;
 namespace NovaUI.Controls
 {
 	[ToolboxBitmap(typeof(Button))]
+	[DefaultEvent("Click")]
 	public class NovaButton : Button
 	{
 		private Color _borderColor = Constants.BorderColor;

@@ -9,6 +9,7 @@ using NovaUI.Helpers.LibMain;
 namespace NovaUI.Controls
 {
 	[ToolboxBitmap(typeof(LinkLabel))]
+	[DefaultEvent("Click")]
 	public class NovaLinkLabel : Label
 	{
 		private string _link = "https://www.google.com/";

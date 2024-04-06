@@ -9,6 +9,7 @@ using NovaUI.Helpers.LibMain;
 namespace NovaUI.Controls
 {
 	[ToolboxBitmap(typeof(CheckBox))]
+	[DefaultEvent("CheckedChanged")]
 	public class NovaCheckBox : CheckBox
 	{
 		private Color _borderColor = Constants.BorderColor;

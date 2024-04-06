@@ -9,6 +9,7 @@ using NovaUI.Helpers.LibMain;
 namespace NovaUI.Controls
 {
 	[ToolboxBitmap(typeof(RadioButton))]
+	[DefaultEvent("CheckedChanged")]
 	public class NovaRadioButton : RadioButton
 	{
 		private Color _borderColor = Constants.BorderColor;

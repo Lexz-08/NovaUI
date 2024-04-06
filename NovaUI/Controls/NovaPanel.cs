@@ -9,6 +9,7 @@ using NovaUI.Helpers.LibMain;
 namespace NovaUI.Controls
 {
 	[ToolboxBitmap(typeof(Panel))]
+	[DefaultEvent("Click")]
 	public class NovaPanel : Panel
 	{
 		private Color _borderColor = Constants.BorderColor;

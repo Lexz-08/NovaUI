@@ -9,6 +9,7 @@ using NovaUI.Helpers.LibMain;
 namespace NovaUI.Controls
 {
 	[ToolboxBitmap(typeof(ProgressBar))]
+	[DefaultEvent("ValueChanged")]
 	public class NovaProgressBar : Control
 	{
 		private Color _borderColor = Constants.BorderColor;

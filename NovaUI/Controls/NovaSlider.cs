@@ -10,6 +10,7 @@ using NovaUI.Helpers.LibMain;
 namespace NovaUI.Controls
 {
 	[ToolboxBitmap(typeof(TrackBar))]
+	[DefaultEvent("ValueChanged")]
 	public class NovaSlider : Control
 	{
 		private Color _trackColor = Constants.SecondaryColor;

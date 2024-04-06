@@ -1,5 +1,6 @@
 ﻿using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -22,6 +23,9 @@ namespace NovaUI.Controls
 
 		private TextBox _input = new TextBox();
 		private bool _mouseHover = false;
+		private Stopwatch _delay = new Stopwatch();
+		private Timer _delayTracker = new Timer { Interval = 1 };
+		private bool _canDelay = true;
 
 		/// <summary>
 		/// Occurs when the value of the <see cref="BorderColor"/> property changes.
@@ -46,6 +50,18 @@ namespace NovaUI.Controls
 		/// </summary>
 		[Category("Property"), Description("Occurs when the value of the BorderRadius property changes.")]
 		public event EventHandler BorderRadiusChanged;
+
+		/// <summary>
+		/// Occurs when the user begins input.
+		/// </summary>
+		[Category("Behavior"), Description("Occurs when the user begins input.")]
+		public event EventHandler InputStarted;
+
+		/// <summary>
+		/// Occurs when the user stops input.
+		/// </summary>
+		[Category("Behavior"), Description("Occurs when the user stops input.")]
+		public event EventHandler InputEnded;
 
 		/// <summary>
 		/// Raises the <see cref="BorderColorChanged"/> event.
@@ -84,6 +100,26 @@ namespace NovaUI.Controls
 		protected virtual void OnBorderRadiusChanged(EventArgs e)
 		{
 			BorderRadiusChanged?.Invoke(this, e);
+			Invalidate();
+		}
+
+		/// <summary>
+		/// Raises the <see cref="InputStarted"/> event.
+		/// </summary>
+		/// <param name="e">An EventArgs that contains the event data.</param>
+		protected virtual void OnInputStarted(EventArgs e)
+		{
+			InputStarted?.Invoke(this, e);
+			Invalidate();
+		}
+
+		/// <summary>
+		/// Raises the <see cref="InputEnded"/> event.
+		/// </summary>
+		/// <param name="e">An EventArgs that contains the event data.</param>
+		protected virtual void OnInputEnded(EventArgs e)
+		{
+			InputEnded?.Invoke(this, e);
 			Invalidate();
 		}
 
@@ -320,6 +356,17 @@ namespace NovaUI.Controls
 			_input.Click += (_, e) => OnClick(e);
 			_input.MouseClick += (_, e) => OnMouseClick(e);
 
+			_delayTracker.Tick += (_, __) =>
+			{
+				if (_delay.ElapsedMilliseconds > 250)
+				{
+					OnInputEnded(EventArgs.Empty);
+					_delayTracker.Stop();
+					_delay.Stop();
+					_canDelay = true;
+				}
+			};
+
 			Controls.Add(_input);
 
 			UpdateHeight();
@@ -342,6 +389,30 @@ namespace NovaUI.Controls
 		/// Clears the input.
 		/// </summary>
 		public void ClearInput() => _input.Clear();
+
+		protected override void OnKeyDown(KeyEventArgs e)
+		{
+			base.OnKeyDown(e);
+
+			if (_canDelay)
+			{
+				OnInputStarted(EventArgs.Empty);
+				_canDelay = false;
+			}
+			else
+			{
+				_delay.Restart();
+				_delayTracker.Stop();
+			}
+		}
+
+		protected override void OnKeyUp(KeyEventArgs e)
+		{
+			base.OnKeyUp(e);
+
+			_delay.Start();
+			_delayTracker.Start();
+		}
 
 		protected override void OnResize(EventArgs e)
 		{

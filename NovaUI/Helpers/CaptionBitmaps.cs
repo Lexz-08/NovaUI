@@ -10,7 +10,7 @@ namespace NovaUI.Helpers
 	/// <summary>
 	/// Contains pre-drawn bitmaps for your window's titlebar.
 	/// </summary>
-	internal sealed class Bitmaps
+	public sealed class Bitmaps
 	{
 		private const int pos = 11;
 		private static string _instanceId = string.Empty;
@@ -139,7 +139,7 @@ namespace NovaUI.Helpers
 	/// <summary>
 	/// The type of bitmap shape to generate.
 	/// </summary>
-	internal enum BitmapType
+	public enum BitmapType
 	{
 		/// <summary>
 		/// Generate an 'X' shape.
