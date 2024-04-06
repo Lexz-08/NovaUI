@@ -101,6 +101,7 @@
     <Compile Include="Controls\NovaToggle.cs">
       <SubType>Component</SubType>
     </Compile>
+    <Compile Include="Enums\CursorType.cs" />
     <Compile Include="Enums\FileInputType.cs" />
     <Compile Include="Enums\SliderKnobStyle.cs" />
     <Compile Include="Enums\SliderStyle.cs" />

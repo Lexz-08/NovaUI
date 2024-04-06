@@ -5,6 +5,7 @@ using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.Windows.Forms;
 
+using NovaUI.Enums;
 using NovaUI.EventManagement.ArgumentContainers;
 using NovaUI.EventManagement.Handlers;
 using NovaUI.Helpers;
@@ -31,6 +32,7 @@ namespace NovaUI.Controls
 		private bool _aeroEnabled = false;
 		private bool _canFade = true;
 		private Size _stateChangeSize;
+		private CursorType _cursorType = CursorType.Arrow;
 
 		private Rectangle _topLeft, _top, _topRight,
 			_left, _right,
@@ -432,25 +434,51 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseMove(e);
 
+			CursorType newCursor = 0;
+
 			if ((_left.Contains(e.Location) || _right.Contains(e.Location)) && _canResize)
 			{
-				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeWE");
-				else Cursor = Cursors.SizeWE;
+				newCursor = CursorType.SizeWE;
+				if (newCursor != _cursorType)
+				{
+					_cursorType = newCursor;
+
+					if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeWE");
+					else Cursor = Cursors.SizeWE;
+				}
 			}
 			else if ((_top.Contains(e.Location) || _bottom.Contains(e.Location)) && _canResize)
 			{
-				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNS");
-				else Cursor = Cursors.SizeNS;
+				newCursor = CursorType.SizeNS;
+				if (newCursor != _cursorType)
+				{
+					_cursorType = newCursor;
+
+					if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNS");
+					else Cursor = Cursors.SizeNS;
+				}
 			}
 			else if ((_topLeft.Contains(e.Location) || _bottomRight.Contains(e.Location)) && _canResize)
 			{
-				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNWSE");
-				else Cursor = Cursors.SizeNWSE;
+				newCursor = CursorType.SizeNWSE;
+				if (newCursor != _cursorType)
+				{
+					_cursorType = newCursor;
+
+					if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNWSE");
+					else Cursor = Cursors.SizeNWSE;
+				}
 			}
 			else if ((_topRight.Contains(e.Location) || _bottomLeft.Contains(e.Location)) && _canResize)
 			{
-				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNESW");
-				else Cursor = Cursors.SizeNESW;
+				newCursor = CursorType.SizeNESW;
+				if (newCursor != _cursorType)
+				{
+					_cursorType = newCursor;
+
+					if (_useUserSchemeCursor) Cursor = Win32.RegCursor("SizeNESW");
+					else Cursor = Cursors.SizeNESW;
+				}
 			}
 			else if (_close.Contains(e.Location) ||
 				(_minimize.Contains(e.Location) && MinimizeBox) ||
@@ -458,13 +486,25 @@ namespace NovaUI.Controls
 				(_caption1.Contains(e.Location) && _allowCaption1) ||
 				(_caption2.Contains(e.Location) && _allowCaption2))
 			{
-				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("Hand");
-				else Cursor = Cursors.Hand;
+				newCursor = CursorType.Hand;
+				if (newCursor != _cursorType)
+				{
+					_cursorType = newCursor;
+
+					if (_useUserSchemeCursor) Cursor = Win32.RegCursor("Hand");
+					else Cursor = Cursors.Hand;
+				}
 			}
 			else
 			{
-				if (_useUserSchemeCursor) Cursor = Win32.RegCursor("Arrow");
-				else Cursor = _originalCrsr;
+				newCursor = CursorType.Arrow;
+				if (newCursor != _cursorType)
+				{
+					_cursorType = newCursor;
+
+					if (_useUserSchemeCursor) Cursor = Win32.RegCursor("Arrow");
+					else Cursor = _originalCrsr;
+				}
 			}
 
 			GC.Collect();
