@@ -2,7 +2,7 @@
 ## Project Information
 [![](https://img.shields.io/badge/.NET_Framework-4.8-blue)](https://dotnet.microsoft.com/en-us/download/dotnet-framework/net48)
 [![](https://img.shields.io/badge/build-passing-seagreen)](#)
-[![](https://img.shields.io/badge/latest_version-3.0.12-goldenrod)](https://github.com/Lexz-08/NovaUI/releases/tag/3.0.12)
+[![](https://img.shields.io/badge/latest_version-3.0.13-goldenrod)](https://github.com/Lexz-08/NovaUI/releases/tag/3.0.13)
 [![](https://img.shields.io/badge/status-on_pause-949494)](#)
 
 ## Description
@@ -55,4 +55,4 @@ An improved (hopefully) version of the [CometUI](https://github.com/Lexz-08/Come
     - A re-styled window without a caption header, minimize button, maximize button, or close button.
 
 ## Download
-[![](https://img.shields.io/badge/download-3.0.12-red)](https://github.com/Lexz-08/NovaUI/releases/latest/download/NovaUI.dll)
+[![](https://img.shields.io/badge/download-3.0.13-red)](https://github.com/Lexz-08/NovaUI/releases/latest/download/NovaUI.dll)
