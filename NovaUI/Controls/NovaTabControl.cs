@@ -16,7 +16,6 @@ namespace NovaUI.Controls
 		private Color _tabColor = Constants.SecondaryColor;
 		private Color _activeTabForeColor = Constants.TextColor;
 		private Color _tabForeColor = Constants.TextColor.Darker(0.2f);
-		private bool _underlineTabs = false;
 		private int _borderRadius = 6;
 		private TabStyle _tabStyle = TabStyle.Block;
 		private bool _useUserSchemeCursor = true;
@@ -143,16 +142,6 @@ namespace NovaUI.Controls
 		{
 			get => _tabForeColor;
 			set { _tabForeColor = value; OnTabForeColorChanged(EventArgs.Empty); }
-		}
-
-		/// <summary>
-		/// Gets or sets a value indicating whether a line is displayed under the tab buttons rather than a full rectangle.
-		/// </summary>
-		[Category("Appearance"), Description("Gets or sets a value indicating whether a line is displayed under the tab buttons rather than a full rectangle.")]
-		public bool UnderlineTabs
-		{
-			get => _underlineTabs;
-			set { _underlineTabs = value; Invalidate(); }
 		}
 
 		/// <summary>
