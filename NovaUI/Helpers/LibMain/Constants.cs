@@ -9,7 +9,7 @@ namespace NovaUI.Helpers.LibMain
 		public static Color SecondaryColor => Color.FromArgb(50, 50, 50);
 		public static Color BorderColor => Color.FromArgb(75, 75, 75);
 		public static Color TextColor => Color.FromArgb(235, 235, 235);
-		public static Color AccentColor => Color.Gold.BlendWith(Color.Magenta);
+		public static Color AccentColor => Color.DodgerBlue.BlendWith(Color.Blue).BlendWith(Color.SteelBlue);
 
 		public static StringFormat CenterAlign => new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
 		public static StringFormat LeftAlign => new StringFormat { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Center };
