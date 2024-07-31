@@ -106,8 +106,12 @@
     <Compile Include="Enums\SliderKnobStyle.cs" />
     <Compile Include="Enums\SliderStyle.cs" />
     <Compile Include="Enums\TabStyle.cs" />
-    <Compile Include="EventManagement\ArgumentContainers\WindowStateChangedEventArgs.cs" />
-    <Compile Include="EventManagement\Handlers\WindowStateChangedEventHandler.cs" />
+    <Compile Include="Events\FileSelectedEventArgs.cs" />
+    <Compile Include="Events\FileSelectedEventHandler.cs" />
+    <Compile Include="Events\FolderSelectedEventArgs.cs" />
+    <Compile Include="Events\FolderSelectedEventHandler.cs" />
+    <Compile Include="Events\WindowStateChangedEventArgs.cs" />
+    <Compile Include="Events\WindowStateChangedEventHandler.cs" />
     <Compile Include="Helpers\CaptionBitmaps.cs" />
     <Compile Include="Helpers\ColorHelper.cs" />
     <Compile Include="Helpers\GraphicsHelper.cs" />
