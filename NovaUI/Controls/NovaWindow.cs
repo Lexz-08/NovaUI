@@ -825,7 +825,6 @@ namespace NovaUI.Controls
 			if (!DesignMode)
 			{
 				Panel window = new Panel();
-				window.BackColor = Constants.SecondaryColor;
 				window.Location = new Point(14, 46);
 				window.Size = new Size(Width - 28, Height - 58);
 				window.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;

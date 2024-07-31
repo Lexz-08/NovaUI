@@ -545,6 +545,16 @@ namespace NovaUI.Controls
 				e.Graphics.FillRectangle(_headerColor.ToBrush(), _header);
 			}
 
+			if (DesignMode)
+			{
+				ControlPaint.DrawBorder(e.Graphics,
+					new Rectangle(12, 44, Width - 40, Height - 95),
+					_headerColor.BlendWith(ForeColor).BlendWith(BackColor), ButtonBorderStyle.Dotted);
+				e.Graphics.DrawString("Controls will be repositioned here due\nto Windows' non-client window sizing.", Font,
+					ForeColor.BlendWith(BackColor).ToBrush(), new Rectangle(12, 44, Width - 40, Height - 95),
+					Constants.CenterAlign);
+			}
+
 			_topLeft = new Rectangle(0, 0, _resizeWidth, _resizeWidth);
 			_top = new Rectangle(_resizeWidth, 0, Width - (_resizeWidth * 2), _resizeWidth);
 			_topRight = new Rectangle(Width - _resizeWidth, 0, _resizeWidth, _resizeWidth);
@@ -648,6 +658,18 @@ namespace NovaUI.Controls
 
 			_stateChangeSize = ClientSize;
 			Size = new Size(ClientSize.Width - 16, ClientSize.Height - 39);
+
+			if (!DesignMode)
+			{
+				Panel window = new Panel();
+				window.BackColor = Constants.SecondaryColor;
+				window.Location = new Point(14, 46);
+				window.Size = new Size(Width - 28, Height - 58);
+				window.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+				foreach (Control c in Controls) { c.Parent = window; c.Left -= 12; c.Top -= 44; }
+				window.Parent = this;
+			}
 		}
 
 		protected override void WndProc(ref Message m)
