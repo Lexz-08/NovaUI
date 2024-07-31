@@ -54,4 +54,4 @@ An improved (hopefully) version of the [CometUI](https://github.com/Lexz-08/Come
     - A re-styled window without a caption header, minimize button, maximize button, or close button.
 
 ## Download
-[![](https://img.shields.io/badge/download-4.1.14-red)](https://github.com/Lexz-08/NovaUI/releases/latest/download/NovaUI.dll)
+[NovaUI.dll](https://github.com/Lexz-08/NovaUI/releases/latest/download/NovaUI.dll)
