@@ -4,8 +4,7 @@ using System.Drawing;
 using System.Windows.Forms;
 
 using NovaUI.Enums;
-using NovaUI.EventManagement.ArgumentContainers;
-using NovaUI.EventManagement.Handlers;
+using NovaUI.Events;
 using NovaUI.Helpers;
 using NovaUI.Helpers.LibMain;
 
@@ -381,6 +380,16 @@ namespace NovaUI.Controls
 			else if (_useAeroShadow)
 				e.Graphics.FillRectangle(BackColor.ToBrush(), 0, 0, Width, Height);
 
+			if (DesignMode)
+			{
+				ControlPaint.DrawBorder(e.Graphics,
+					new Rectangle(12, 12, Width - 40, Height - 63),
+					ForeColor.BlendWith(BackColor), ButtonBorderStyle.Dotted);
+				e.Graphics.DrawString("Controls will be repositioned here due\nto Windows' non-client window sizing.", Font,
+					ForeColor.BlendWith(BackColor).ToBrush(), new Rectangle(12, 12, Width - 40, Height - 63),
+					Constants.CenterAlign);
+			}
+
 			_topLeft = new Rectangle(0, 0, _resizeWidth, _resizeWidth);
 			_top = new Rectangle(_resizeWidth, 0, Width - (_resizeWidth * 2), _resizeWidth);
 			_topRight = new Rectangle(Width - _resizeWidth, 0, _resizeWidth, _resizeWidth);
@@ -428,6 +437,35 @@ namespace NovaUI.Controls
 
 			_stateChangeSize = ClientSize;
 			Size = new Size(ClientSize.Width - 16, ClientSize.Height - 39);
+
+			if (!DesignMode)
+			{
+				Panel window = new Panel();
+				window.Location = new Point(12, 12);
+				window.Size = new Size(Width - 24, Height - 24);
+				window.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+
+				foreach (Control c in Controls) { c.Parent = window; c.Left -= 12; c.Top -= 12; }
+				window.Parent = this;
+
+				WindowStateChanged += (_, _e) =>
+				{
+					if (_e.CurrentState == FormWindowState.Maximized && _e.PreviousState == FormWindowState.Normal)
+					{
+						window.Left += 8;
+						window.Top += 8;
+						window.Width -= 16;
+						window.Height -= 16;
+					}
+					else if (_e.CurrentState == FormWindowState.Normal && _e.PreviousState == FormWindowState.Maximized)
+					{
+						window.Left -= 8;
+						window.Top -= 8;
+						window.Width += 16;
+						window.Height += 16;
+					}
+				};
+			}
 		}
 
 		protected override void WndProc(ref Message m)
