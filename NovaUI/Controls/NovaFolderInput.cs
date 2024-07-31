@@ -7,10 +7,13 @@ using System.Windows.Forms;
 using NovaUI.Helpers;
 using NovaUI.Helpers.LibMain;
 
+using FolderSelectedEventArgs = NovaUI.Events.FolderSelectedEventArgs;
+using FolderSelectedEventHandler = NovaUI.Events.FolderSelectedEventHandler;
+
 namespace NovaUI.Controls
 {
 	[ToolboxBitmap(typeof(TextBox))]
-	[DefaultEvent("TextChanged")]
+	[DefaultEvent("FolderSelected")]
 	public class NovaFolderInput : Control
 	{
 		private Color _borderColor = Constants.BorderColor;
@@ -51,6 +54,12 @@ namespace NovaUI.Controls
 		public event EventHandler BorderRadiusChanged;
 
 		/// <summary>
+		/// Occurs when a folder is selected.
+		/// </summary>
+		[Category("Property"), Description("Occurs when a folder is selected.")]
+		public event FolderSelectedEventHandler FolderSelected;
+
+		/// <summary>
 		/// Raises the <see cref="BorderColorChanged"/> event.
 		/// </summary>
 		/// <param name="e">An EventArgs that contains the event data.</param>
@@ -87,6 +96,16 @@ namespace NovaUI.Controls
 		protected virtual void OnBorderRadiusChanged(EventArgs e)
 		{
 			BorderRadiusChanged?.Invoke(this, e);
+			Invalidate();
+		}
+
+		/// <summary>
+		/// Raises the <see cref="FolderSelected"/> event.
+		/// </summary>
+		/// <param name="e">An EventArgs that contains the event data.</param>
+		protected virtual void OnFolderSelected(FolderSelectedEventArgs e)
+		{
+			FolderSelected?.Invoke(this, e);
 			Invalidate();
 		}
 
@@ -203,7 +222,7 @@ namespace NovaUI.Controls
 		/// The text associated with this control.
 		/// </returns>
 		[Category("Appearance"), Description("Gets or sets the text associated with this control.")]
-		public override string Text
+		public string Folder
 		{
 			get => _input.Text;
 			set { _input.Text = value; OnTextChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
@@ -295,6 +314,10 @@ namespace NovaUI.Controls
 			get => _input.Font;
 			set { _input.Font = value; OnFontChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
 		}
+
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+		public override string Text => string.Empty;
 
 		/// <summary>
 		/// Gets a value indicating whether the control has input focus.
@@ -416,7 +439,12 @@ namespace NovaUI.Controls
 				Description = _dialogDescription,
 				ShowNewFolderButton = _allowNewFolder
 			}) if (fbd.ShowDialog() == DialogResult.OK)
+				{
+					string old = _input.Text;
 					_input.Text = fbd.SelectedPath;
+
+					if (!_input.Text.Equals(old)) OnFolderSelected(new FolderSelectedEventArgs(fbd.SelectedPath));
+				}
 
 			_input.Focus();
 			Invalidate();

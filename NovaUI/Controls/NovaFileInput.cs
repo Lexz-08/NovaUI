@@ -8,10 +8,13 @@ using NovaUI.Enums;
 using NovaUI.Helpers;
 using NovaUI.Helpers.LibMain;
 
+using FileSelectedEventArgs = NovaUI.Events.FileSelectedEventArgs;
+using FileSelectedEventHandler = NovaUI.Events.FileSelectedEventHandler;
+
 namespace NovaUI.Controls
 {
 	[ToolboxBitmap(typeof(TextBox))]
-	[DefaultEvent("TextChanged")]
+	[DefaultEvent("FileSelected")]
 	public class NovaFileInput : Control
 	{
 		private Color _borderColor = Constants.BorderColor;
@@ -54,6 +57,12 @@ namespace NovaUI.Controls
 		public event EventHandler BorderRadiusChanged;
 
 		/// <summary>
+		/// Occurs when a file is selected.
+		/// </summary>
+		[Category("Property"), Description("Occurs when a file is selected.")]
+		public event FileSelectedEventHandler FileSelected;
+
+		/// <summary>
 		/// Raises the <see cref="BorderColorChanged"/> event.
 		/// </summary>
 		/// <param name="e">An EventArgs that contains the event data.</param>
@@ -90,6 +99,12 @@ namespace NovaUI.Controls
 		protected virtual void OnBorderRadiusChanged(EventArgs e)
 		{
 			BorderRadiusChanged?.Invoke(this, e);
+			Invalidate();
+		}
+
+		protected virtual void OnFileSelected(FileSelectedEventArgs e)
+		{
+			FileSelected?.Invoke(this, e);
 			Invalidate();
 		}
 
@@ -222,10 +237,10 @@ namespace NovaUI.Controls
 		/// The text associated with this control.
 		/// </returns>
 		[Category("Appearance"), Description("Gets or sets the text associated with this control.")]
-		public override string Text
+		public string File
 		{
 			get => _input.Text;
-			set { _input.Text = value; OnTextChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
+			set { _input.Text = value; _input.Invalidate(); Invalidate(); }
 		}
 
 		/// <summary>
@@ -314,6 +329,10 @@ namespace NovaUI.Controls
 			get => _input.Font;
 			set { _input.Font = value; OnFontChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
 		}
+
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+		public override string Text => string.Empty;
 
 		/// <summary>
 		/// Gets a value indicating whether the control has input focus.
@@ -439,7 +458,12 @@ namespace NovaUI.Controls
 						Filter = _dialogFilter,
 						FilterIndex = _filterIndex
 					}) if (ofd.ShowDialog() == DialogResult.OK)
+						{
+							string old = _input.Text;
 							_input.Text = ofd.FileName;
+
+							if (!_input.Text.Equals(old)) OnFileSelected(new FileSelectedEventArgs(ofd.FileName));
+						}
 					break;
 				case FileInputType.SaveFile:
 					using (SaveFileDialog sfd = new SaveFileDialog
@@ -448,7 +472,12 @@ namespace NovaUI.Controls
 						Filter = _dialogFilter,
 						FilterIndex = _filterIndex
 					}) if (sfd.ShowDialog() == DialogResult.OK)
+						{
+							string old = _input.Text;
 							_input.Text = sfd.FileName;
+
+							if (!_input.Text.Equals(old)) OnFileSelected(new FileSelectedEventArgs(sfd.FileName));
+						}
 					break;
 			}
 
