@@ -301,6 +301,13 @@ namespace NovaUI.Controls
 			set { base.MaximizeBox = value; Invalidate(); }
 		}
 
+		/// <summary>
+		/// The panel which contains all controls when the form loads to ensure correct position during window sizing.
+		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
+		public Panel Content { get; private set; }
+
 		public NovaToolWindow()
 		{
 			SetStyle(ControlStyles.AllPaintingInWmPaint |
@@ -668,7 +675,7 @@ namespace NovaUI.Controls
 				window.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
 				foreach (Control c in Controls) { c.Parent = window; c.Left -= 12; c.Top -= 44; }
-				window.Parent = this;
+				window.Parent = this; Content = window;
 			}
 		}
 

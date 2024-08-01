@@ -363,6 +363,13 @@ namespace NovaUI.Controls
 			}
 		}
 
+		/// <summary>
+		/// The panel which contains all controls when the form loads to ensure correct position during window sizing.
+		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
+		public Panel Content { get; private set; }
+
 		public NovaWindow()
 		{
 			SetStyle(ControlStyles.AllPaintingInWmPaint |
@@ -830,7 +837,7 @@ namespace NovaUI.Controls
 				window.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
 				foreach (Control c in Controls) { c.Parent = window; c.Left -= 12; c.Top -= 44; }
-				window.Parent = this;
+				window.Parent = this; Content = window;
 
 				WindowStateChanged += (_, _e) =>
 				{
@@ -838,11 +845,15 @@ namespace NovaUI.Controls
 					{
 						window.Left += 8;
 						window.Top += 8;
+						window.Width -= 16;
+						window.Height -= 16;
 					}
 					else if (_e.CurrentState == FormWindowState.Normal && _e.PreviousState == FormWindowState.Maximized)
 					{
 						window.Left -= 8;
 						window.Top -= 8;
+						window.Width += 16;
+						window.Height += 16;
 					}
 				};
 			}
