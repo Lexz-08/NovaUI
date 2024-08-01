@@ -462,7 +462,7 @@ namespace NovaUI.Controls
 							string old = _input.Text;
 							_input.Text = ofd.FileName;
 
-							if (!_input.Text.Equals(old)) OnFileSelected(new FileSelectedEventArgs(ofd.FileName));
+							if (!_input.Text.Equals(old)) OnFileSelected(new FileSelectedEventArgs(_input.Text));
 						}
 					break;
 				case FileInputType.SaveFile:
@@ -476,7 +476,7 @@ namespace NovaUI.Controls
 							string old = _input.Text;
 							_input.Text = sfd.FileName;
 
-							if (!_input.Text.Equals(old)) OnFileSelected(new FileSelectedEventArgs(sfd.FileName));
+							if (!_input.Text.Equals(old)) OnFileSelected(new FileSelectedEventArgs(_input.Text));
 						}
 					break;
 			}

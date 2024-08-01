@@ -443,7 +443,7 @@ namespace NovaUI.Controls
 					string old = _input.Text;
 					_input.Text = fbd.SelectedPath;
 
-					if (!_input.Text.Equals(old)) OnFolderSelected(new FolderSelectedEventArgs(fbd.SelectedPath));
+					if (!_input.Text.Equals(old)) OnFolderSelected(new FolderSelectedEventArgs(_input.Text));
 				}
 
 			_input.Focus();
