@@ -18,8 +18,6 @@ namespace NovaUI.Controls
 		private Color _tabForeColor = Constants.TextColor.Darker(0.2f);
 		private int _borderRadius = 6;
 		private TabStyle _tabStyle = TabStyle.Block;
-		private bool _useUserSchemeCursor = true;
-		private Cursor _originalCrsr = Cursors.Hand;
 
 		private bool _mouseHover = false;
 		private bool _mouseDown = false;
@@ -169,36 +167,6 @@ namespace NovaUI.Controls
 			set { _tabStyle = value; Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets a value indicating whether the control will use the user-selected system scheme cursor.
-		/// </summary>
-		[Category("Behavior"), Description("Gets or sets a value indicating whether the control will use the user-selected system scheme cursor.")]
-		public bool UseUserSchemeCursor
-		{
-			get => _useUserSchemeCursor;
-			set { _useUserSchemeCursor = value; Invalidate(); }
-		}
-
-		/// <summary>
-		/// Gets or sets the cursor that is displayed when the mouse pointer is over the control.
-		/// </summary>
-		/// <returns>
-		/// A <see cref="Cursor"/> that represents the cursor to display when the mouse pointer is over the control.
-		/// </returns>
-		[Category("Appearance"), Description("Gets or sets the cursor that is displayed when the mouse pointer is over the control.")]
-		public override Cursor Cursor
-		{
-			get => base.Cursor;
-			set
-			{
-				base.Cursor = value;
-				if (!_useUserSchemeCursor) _originalCrsr = value;
-
-				OnCursorChanged(EventArgs.Empty);
-				Invalidate();
-			}
-		}
-
 		public override Rectangle DisplayRectangle
 		{
 			get
@@ -226,8 +194,6 @@ namespace NovaUI.Controls
 			base.OnMouseEnter(e);
 
 			_mouseHover = true;
-			if (_useUserSchemeCursor) Cursor = Win32.RegCursor("Hand");
-			else Cursor = _originalCrsr;
 			Invalidate();
 		}
 
