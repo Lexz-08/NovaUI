@@ -37,7 +37,6 @@
 			this.ClientSize = new System.Drawing.Size(496, 380);
 			this.Font = new System.Drawing.Font("Microsoft Sans Serif", 10F);
 			this.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(235)))), ((int)(((byte)(235)))), ((int)(((byte)(253)))));
-			this.MaximizeBox = false;
 			this.Name = "Main";
 			this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
 			this.Text = "Demo";
