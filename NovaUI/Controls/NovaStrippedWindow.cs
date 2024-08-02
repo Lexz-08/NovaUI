@@ -379,16 +379,6 @@ namespace NovaUI.Controls
 			else if (_useAeroShadow)
 				e.Graphics.FillRectangle(BackColor.ToBrush(), 0, 0, Width, Height);
 
-			if (DesignMode)
-			{
-				ControlPaint.DrawBorder(e.Graphics,
-					new Rectangle(12, 12, Width - 40, Height - 63),
-					ForeColor.BlendWith(BackColor), ButtonBorderStyle.Dotted);
-				e.Graphics.DrawString("Controls will be repositioned here due\nto Windows' non-client window sizing.", Font,
-					ForeColor.BlendWith(BackColor).ToBrush(), new Rectangle(12, 12, Width - 40, Height - 63),
-					Constants.CenterAlign);
-			}
-
 			_topLeft = new Rectangle(0, 0, _resizeWidth, _resizeWidth);
 			_top = new Rectangle(_resizeWidth, 0, Width - (_resizeWidth * 2), _resizeWidth);
 			_topRight = new Rectangle(Width - _resizeWidth, 0, _resizeWidth, _resizeWidth);
@@ -437,34 +427,25 @@ namespace NovaUI.Controls
 			_stateChangeSize = ClientSize;
 			Size = new Size(ClientSize.Width - 16, ClientSize.Height - 39);
 
-			if (!DesignMode)
+			if (!DesignMode) WindowStateChanged += (_, _e) =>
 			{
-				Panel window = new Panel();
-				window.Location = new Point(12, 12);
-				window.Size = new Size(Width - 24, Height - 24);
-				window.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
-
-				foreach (Control c in Controls) { c.Parent = window; c.Left -= 12; c.Top -= 12; }
-				window.Parent = this; Content = window;
-
-				WindowStateChanged += (_, _e) =>
-				{
-					if (_e.CurrentState == FormWindowState.Maximized && _e.PreviousState == FormWindowState.Normal)
+				if (_e.CurrentState == FormWindowState.Maximized && _e.PreviousState == FormWindowState.Normal)
+					foreach (Control c in Controls)
 					{
-						window.Left += 8;
-						window.Top += 8;
-						window.Width -= 16;
-						window.Height -= 16;
+						if ((c.Anchor & AnchorStyles.Left) != 0) c.Left += 8;
+						if ((c.Anchor & AnchorStyles.Top) != 0) c.Top += 8;
+						if ((c.Anchor & AnchorStyles.Right) != 0) c.Width -= (c.Anchor & AnchorStyles.Left) != 0 ? 16 : 8;
+						if ((c.Anchor & AnchorStyles.Bottom) != 0) c.Height -= (c.Anchor & AnchorStyles.Top) != 0 ? 16 : 8;
 					}
-					else if (_e.CurrentState == FormWindowState.Normal && _e.PreviousState == FormWindowState.Maximized)
+				else if (_e.CurrentState == FormWindowState.Normal && _e.PreviousState == FormWindowState.Maximized)
+					foreach (Control c in Controls)
 					{
-						window.Left -= 8;
-						window.Top -= 8;
-						window.Width += 16;
-						window.Height += 16;
+						if ((c.Anchor & AnchorStyles.Left) != 0) c.Left -= 8;
+						if ((c.Anchor & AnchorStyles.Top) != 0) c.Top -= 8;
+						if ((c.Anchor & AnchorStyles.Right) != 0) c.Width += (c.Anchor & AnchorStyles.Left) != 0 ? 16 : 8;
+						if ((c.Anchor & AnchorStyles.Bottom) != 0) c.Height += (c.Anchor & AnchorStyles.Top) != 0 ? 16 : 8;
 					}
-				};
-			}
+			};
 		}
 
 		protected override void WndProc(ref Message m)
