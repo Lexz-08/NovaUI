@@ -133,6 +133,8 @@ namespace NovaUI.Controls
 				if (value < 0) value = 0;
 				else if (value > Math.Min(Width, Height) / 2)
 					value = Math.Min(Width, Height) / 2;
+				if (value != _borderRadius)
+					Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
 				_borderRadius = value;
 				OnBorderRadiusChanged(EventArgs.Empty);
 			}
@@ -180,6 +182,7 @@ namespace NovaUI.Controls
 			BackColor = Constants.PrimaryColor;
 			ForeColor = Constants.TextColor;
 			Size = new Size(100, 30);
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
 		}
 
 		protected override void OnMouseEnter(EventArgs e)
@@ -227,7 +230,6 @@ namespace NovaUI.Controls
 			base.OnPaint(e);
 
 			e.Graphics.Clear(Parent.BackColor);
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
 
 			e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 

@@ -138,7 +138,13 @@ namespace NovaUI.Controls
 		public int BorderRadius
 		{
 			get => _borderRadius;
-			set { _borderRadius = value; OnBorderRadiusChanged(EventArgs.Empty); }
+			set
+			{
+				if (value != _borderRadius)
+					Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+				_borderRadius = value;
+				OnBorderRadiusChanged(EventArgs.Empty);
+			}
 		}
 
 		/// <summary>
@@ -236,6 +242,7 @@ namespace NovaUI.Controls
 			BackColor = Constants.PrimaryColor;
 			ForeColor = Constants.TextColor;
 			Size = new Size(200, 12);
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
 		}
 
 		/// <summary>
@@ -258,7 +265,6 @@ namespace NovaUI.Controls
 			base.OnPaint(e);
 
 			e.Graphics.Clear(Parent.BackColor);
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
 
 			float percent = (_value - _minimum) / (float)(_maximum - _minimum);
 			int width = (int)((Width - (_borderWidth * 2) - 1) * percent);

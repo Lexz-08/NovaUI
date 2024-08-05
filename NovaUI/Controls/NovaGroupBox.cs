@@ -91,7 +91,13 @@ namespace NovaUI.Controls
 		public int BorderRadius
 		{
 			get => _borderRadius;
-			set { _borderRadius = value; OnBorderRadiusChanged(EventArgs.Empty); }
+			set
+			{
+				if (value != _borderRadius)
+					Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+				_borderRadius = value;
+				OnBorderRadiusChanged(EventArgs.Empty);
+			}
 		}
 
 		public NovaGroupBox()
@@ -106,6 +112,7 @@ namespace NovaUI.Controls
 			BackColor = Constants.PrimaryColor;
 			ForeColor = Constants.TextColor;
 			Size = new Size(250, 200);
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
 		}
 
 		protected override void OnParentBackColorChanged(EventArgs e)
@@ -119,7 +126,6 @@ namespace NovaUI.Controls
 			base.OnPaint(e);
 
 			e.Graphics.Clear(Parent.BackColor);
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
 
 			e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
