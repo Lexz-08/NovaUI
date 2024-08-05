@@ -4,17 +4,20 @@ using System.Drawing;
 using System.Windows.Forms;
 
 using NovaUI.Helpers;
+using NovaUI.Helpers.Designers;
 using NovaUI.Helpers.LibMain;
 
 namespace NovaUI.Controls
 {
 	[ToolboxBitmap(typeof(CheckBox))]
 	[DefaultEvent("CheckedChanged")]
+	[Designer(typeof(NoResizeDesigner))]
 	public class NovaToggle : CheckBox
 	{
 		private Color _borderColor = Constants.BorderColor;
 		private Color _checkColor = Constants.AccentColor;
 		private bool _useUserSchemeCursor = true;
+		private int _tglSize = 24;
 		private Cursor _originalCrsr = Cursors.Hand;
 
 		private bool _mouseHover = false;
@@ -33,6 +36,12 @@ namespace NovaUI.Controls
 		public event EventHandler CheckColorChanged;
 
 		/// <summary>
+		/// Occurs when the value of the <see cref="ToggleSize"/> property changes.
+		/// </summary>
+		[Category("Property"), Description("Occurs when the value of the ToggleSize property changes.")]
+		public event EventHandler ToggleSizeChanged;
+
+		/// <summary>
 		/// Raises the <see cref="BorderColorChanged"/> event.
 		/// </summary>
 		/// <param name="e">An EventArgs that contains the event data.</param>
@@ -49,6 +58,16 @@ namespace NovaUI.Controls
 		protected virtual void OnCheckColorChanged(EventArgs e)
 		{
 			CheckColorChanged?.Invoke(this, e);
+			Invalidate();
+		}
+
+		/// <summary>
+		/// Raises the <see cref="ToggleSizeChanged"/> event.
+		/// </summary>
+		/// <param name="e">An EventArgs that contains the event data.</param>
+		protected virtual void OnToggleSizeChanged(EventArgs e)
+		{
+			ToggleSizeChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
@@ -82,6 +101,22 @@ namespace NovaUI.Controls
 			set { _useUserSchemeCursor = value; Invalidate(); }
 		}
 
+		/// <summary>
+		/// Gets or sets the size of the toggle.
+		/// </summary>
+		[Category("Appearance"), Description("Gets or sets the size of the toggle.")]
+		public int ToggleSize
+		{
+			get => _tglSize;
+			set
+			{
+				_tglSize = Math.Max(16, value);
+				Size = new Size(value * 2, value);
+				OnToggleSizeChanged(EventArgs.Empty);
+				Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, Math.Min(Width, Height) / 2, Math.Min(Width, Height) / 2));
+			}
+		}
+
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("The ForeColor property of this control is not needed.", true)]
@@ -100,7 +135,15 @@ namespace NovaUI.Controls
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("The AutoSize property of this control is not needed.", true)]
-		public override bool AutoSize { get; set; } = false;
+		public override bool AutoSize { get; set; } = true;
+
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+		public new Size Size
+		{
+			get => base.Size;
+			set { base.Size = value; OnSizeChanged(EventArgs.Empty); Invalidate(); }
+		}
 
 		public NovaToggle()
 		{
@@ -111,21 +154,20 @@ namespace NovaUI.Controls
 			DoubleBuffered = true;
 
 			BackColor = Constants.PrimaryColor;
-			Size = new Size(100, 50);
+			Size = new Size(48, 24);
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, Math.Min(Width, Height) / 2, Math.Min(Width, Height) / 2));
 		}
 
 		protected override void OnResize(EventArgs e)
 		{
 			base.OnResize(e);
-
-			if (Width < Height * 2) Width = Height * 2;
+			if (Size != new Size(_tglSize * 2, _tglSize)) Size = new Size(_tglSize * 2, _tglSize);
 		}
 
 		protected override void OnSizeChanged(EventArgs e)
 		{
 			base.OnSizeChanged(e);
-
-			if (Width < Height * 2) Width = Height * 2;
+			if (Size != new Size(_tglSize * 2, _tglSize)) Size = new Size(_tglSize * 2, _tglSize);
 		}
 
 		protected override void OnMouseEnter(EventArgs e)
@@ -175,12 +217,12 @@ namespace NovaUI.Controls
 			int radius = Math.Min(Width, Height) / 2;
 
 			e.Graphics.Clear(Parent.BackColor);
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, radius, radius));
 
 			e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
 
-			e.Graphics.FillPath(_borderColor.ToBrush(), new Rectangle(0, 0, Width - 1, Height - 1).Roundify(radius));
 			e.Graphics.FillPath(BackColor.ToBrush(), new Rectangle(2, 2, Width - 5, Height - 5).Roundify(radius));
+			e.Graphics.DrawPath(new Pen(_borderColor.ToBrush(), 1), new Rectangle(0, 0, Width - 1, Height - 1).Roundify(radius));
+			e.Graphics.DrawPath(new Pen(_borderColor.ToBrush(), 1), new RectangleF(0.5f, 0.5f, Width - 2, Height - 2).Roundify(radius));
 			e.Graphics.FillEllipse((
 				Checked ? (_mouseHover ? _checkColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _checkColor) :
 				(_mouseHover ? _borderColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : _borderColor)

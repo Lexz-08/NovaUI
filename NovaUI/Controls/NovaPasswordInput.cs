@@ -5,12 +5,14 @@ using System.Drawing;
 using System.Windows.Forms;
 
 using NovaUI.Helpers;
+using NovaUI.Helpers.Designers;
 using NovaUI.Helpers.LibMain;
 
 namespace NovaUI.Controls
 {
 	[ToolboxBitmap(typeof(TextBox))]
 	[DefaultEvent("TextChanged")]
+	[Designer(typeof(LengthResizeDesigner))]
 	public class NovaPasswordInput : Control
 	{
 		private Color _borderColor = Constants.BorderColor;
@@ -154,7 +156,7 @@ namespace NovaUI.Controls
 			get => _borderWidth;
 			set
 			{
-				_borderWidth = value;
+				_borderWidth = Math.Max(1, value);
 				UpdateInputBounds();
 				OnBorderWidthChanged(EventArgs.Empty);
 			}
@@ -172,6 +174,8 @@ namespace NovaUI.Controls
 				if (value < 0) value = 0;
 				else if (value > Math.Min(Width, Height) / 2)
 					value = Math.Min(Width, Height) / 2;
+				if (value != _borderRadius)
+					Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
 				_borderRadius = value;
 				UpdateInputBounds();
 				OnBorderRadiusChanged(EventArgs.Empty);
@@ -348,6 +352,7 @@ namespace NovaUI.Controls
 			BackColor = Constants.PrimaryColor;
 			ForeColor = Constants.TextColor;
 			Width = 200;
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
 
 			_input.PasswordChar = '•';
 			_input.BorderStyle = BorderStyle.None;
@@ -371,7 +376,7 @@ namespace NovaUI.Controls
 
 			_delayTracker.Tick += (_, __) =>
 			{
-				if (_delay.ElapsedMilliseconds > 250)
+				if (_delay.ElapsedMilliseconds > 300)
 				{
 					OnInputEnded(EventArgs.Empty);
 					_delayTracker.Stop();
@@ -535,27 +540,26 @@ namespace NovaUI.Controls
 			base.OnPaint(e);
 
 			e.Graphics.Clear(Parent.BackColor);
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
 
 			if (_underlineBorder)
 			{
 				if (_borderRadius > 0)
 				{
 					e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-					for (int i = 0; i < Math.Max(1, _borderWidth); i++)
+					for (int i = 0; i < _borderWidth; i++)
 						e.Graphics.DrawPath(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
 							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1).Roundify(_borderRadius - i));
 					e.Graphics.FillPath(BackColor.ToBrush(),
-						new Rectangle(0, 0, Width - 1, Height - Math.Max(1, _borderWidth) - 1).Roundify(_borderRadius));
+						new Rectangle(0, 0, Width - 1, Height - _borderWidth - 1).Roundify(_borderRadius));
 					e.Graphics.DrawPath(new Pen(BackColor.ToBrush()),
-						new Rectangle(0, 0, Width - 1, Height - Math.Max(1, _borderWidth) - 1).Roundify(_borderRadius));
+						new Rectangle(0, 0, Width - 1, Height - _borderWidth - 1).Roundify(_borderRadius));
 				}
 				else
 				{
 					e.Graphics.FillRectangle(BackColor.ToBrush(),
-						new Rectangle(0, 0, Width, Height - Math.Max(1, _borderWidth)));
+						new Rectangle(0, 0, Width, Height - _borderWidth));
 					e.Graphics.DrawRectangle(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
-						new Rectangle(0, Height - 1, Width, Math.Max(1, _borderWidth)));
+						new Rectangle(0, Height - 1, Width, _borderWidth));
 				}
 			}
 			else
@@ -563,39 +567,19 @@ namespace NovaUI.Controls
 				if (_borderRadius > 0)
 				{
 					e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-					if (_borderWidth > 0)
-					{
-						e.Graphics.FillPath(BackColor.ToBrush(),
-							new Rectangle(_borderWidth - 1, _borderWidth - 1, Width - (_borderWidth * 2) + 1, Height - (_borderWidth * 2) + 1).Roundify(Math.Max(1, _borderRadius - _borderWidth)));
-						for (int i = 0; i < _borderWidth; i++)
-							e.Graphics.DrawPath(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
-								new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1).Roundify(_borderRadius - i));
-					}
-					else
-					{
-						e.Graphics.FillPath(BackColor.ToBrush(),
-							new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
+					e.Graphics.FillPath(BackColor.ToBrush(),
+						new Rectangle(_borderWidth - 1, _borderWidth - 1, Width - (_borderWidth * 2) + 1, Height - (_borderWidth * 2) + 1).Roundify(Math.Max(1, _borderRadius - _borderWidth)));
+					for (int i = 0; i < _borderWidth; i++)
 						e.Graphics.DrawPath(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
-							new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
-					}
+							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1).Roundify(_borderRadius - i));
 				}
 				else
 				{
-					if (_borderWidth > 0)
-					{
-						e.Graphics.FillRectangle(BackColor.ToBrush(),
-							new Rectangle(_borderWidth, _borderWidth, Width - (_borderWidth * 2), Height - (_borderWidth * 2)));
-						for (int i = 0; i < _borderWidth; i++)
-							e.Graphics.DrawRectangle(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
-								new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1));
-					}
-					else
-					{
-						e.Graphics.FillRectangle(BackColor.ToBrush(),
-							new Rectangle(1, 1, Width - 2, Height - 2));
+					e.Graphics.FillRectangle(BackColor.ToBrush(),
+						new Rectangle(_borderWidth, _borderWidth, Width - (_borderWidth * 2), Height - (_borderWidth * 2)));
+					for (int i = 0; i < _borderWidth; i++)
 						e.Graphics.DrawRectangle(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
-							new Rectangle(0, 0, Width - 1, Height - 1));
-					}
+							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1));
 				}
 			}
 		}
