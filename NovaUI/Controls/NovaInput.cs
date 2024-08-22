@@ -173,7 +173,7 @@ namespace NovaUI.Controls
 				else if (value > Math.Min(Width, Height) / 2)
 					value = Math.Min(Width, Height) / 2;
 				if (value != _borderRadius)
-					Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+					Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, value, value));
 				_borderRadius = value;
 				UpdateInputBounds();
 				OnBorderRadiusChanged(EventArgs.Empty);
@@ -424,6 +424,7 @@ namespace NovaUI.Controls
 			base.OnResize(e);
 
 			UpdateHeight();
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
 		}
 
 		protected override void OnSizeChanged(EventArgs e)
@@ -431,6 +432,7 @@ namespace NovaUI.Controls
 			base.OnSizeChanged(e);
 
 			UpdateHeight();
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
 		}
 
 		protected override void OnMouseEnter(EventArgs e)

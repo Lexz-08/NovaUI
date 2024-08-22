@@ -162,12 +162,16 @@ namespace NovaUI.Controls
 		{
 			base.OnResize(e);
 			if (Size != new Size(_tglSize * 2, _tglSize)) Size = new Size(_tglSize * 2, _tglSize);
+
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, Math.Min(Width, Height) / 2, Math.Min(Width, Height) / 2));
 		}
 
 		protected override void OnSizeChanged(EventArgs e)
 		{
 			base.OnSizeChanged(e);
 			if (Size != new Size(_tglSize * 2, _tglSize)) Size = new Size(_tglSize * 2, _tglSize);
+
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, Math.Min(Width, Height) / 2, Math.Min(Width, Height) / 2));
 		}
 
 		protected override void OnMouseEnter(EventArgs e)

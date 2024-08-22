@@ -115,6 +115,20 @@ namespace NovaUI.Controls
 			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
 		}
 
+		protected override void OnResize(EventArgs eventargs)
+		{
+			base.OnResize(eventargs);
+
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+		}
+
+		protected override void OnSizeChanged(EventArgs e)
+		{
+			base.OnSizeChanged(e);
+
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+		}
+
 		protected override void OnParentBackColorChanged(EventArgs e)
 		{
 			base.OnParentBackColorChanged(e);
