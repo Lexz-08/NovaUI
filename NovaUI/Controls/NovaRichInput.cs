@@ -19,6 +19,9 @@ namespace NovaUI.Controls
 		private int _borderRadius = 6;
 		private bool _underlineBorder = false;
 		private bool _useUserSchemeCursor = true;
+		private bool _readOnly = false;
+		private int _maxLen = int.MaxValue;
+		private RichTextBoxScrollBars _scrollBars = RichTextBoxScrollBars.Both;
 		private Cursor _originalCrsr = Cursors.IBeam;
 
 		private RichTextBox _input = new RichTextBox();
@@ -207,8 +210,8 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets the text associated with this control.")]
 		public override string Text
 		{
-			get => _input.Text;
-			set { _input.Text = value; OnTextChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
+			get => base.Text;
+			set { base.Text = value; _input.Text = value; OnTextChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
 		}
 
 		/// <summary>
@@ -220,8 +223,12 @@ namespace NovaUI.Controls
 		[Category("Behavior"), Description("Gets or sets a value indicating whether text in the control is read-only.")]
 		public bool ReadOnly
 		{
-			get => _input.ReadOnly;
-			set { _input.ReadOnly = value; _input.Invalidate(); Invalidate(); }
+			get
+			{
+				_readOnly = _input.ReadOnly;
+				return _readOnly;
+			}
+			set { _readOnly = value; _input.ReadOnly = value; _input.Invalidate(); Invalidate(); }
 		}
 
 		/// <summary>
@@ -233,8 +240,12 @@ namespace NovaUI.Controls
 		[Category("Behavior"), Description("Gets or sets the maximum number of characters the user can type or paste into the control.")]
 		public int MaxLength
 		{
-			get => _input.MaxLength;
-			set { _input.MaxLength = value; _input.Invalidate(); Invalidate(); }
+			get
+			{
+				_maxLen = _input.MaxLength;
+				return _maxLen;
+			}
+			set { _maxLen = value; _input.MaxLength = value; _input.Invalidate(); Invalidate(); }
 		}
 
 		/// <summary>
@@ -256,11 +267,15 @@ namespace NovaUI.Controls
 		/// <returns>
 		/// One of the <see cref="RichTextBoxScrollBars"/> values. The default is <see cref="RichTextBoxScrollBars.Both"/>.
 		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		[Category("Appearance"), Description("Gets or sets the type of scroll bars to display in the control.")]
 		public RichTextBoxScrollBars ScrollBars
 		{
-			get => _input.ScrollBars;
-			set { _input.ScrollBars = value; _input.Invalidate(); Invalidate(); }
+			get
+			{
+				_scrollBars = _input.ScrollBars;
+				return _scrollBars;
+			}
+			set { _scrollBars = value; _input.ScrollBars = value; _input.Invalidate(); Invalidate(); }
 		}
 
 		/// <summary>
@@ -472,11 +487,11 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets the cursor that is displayed when the mouse pointer is over the control.")]
 		public override Cursor Cursor
 		{
-			get => _input.Cursor;
+			get => base.Cursor;
 			set
 			{
-				_input.Cursor = value;
 				base.Cursor = value;
+				_input.Cursor = value;
 				if (!_useUserSchemeCursor) _originalCrsr = value;
 
 				OnCursorChanged(EventArgs.Empty);
@@ -491,8 +506,8 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets the background color of the control.")]
 		public override Color BackColor
 		{
-			get => _input.BackColor;
-			set { _input.BackColor = value; OnBackColorChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
+			get => base.BackColor;
+			set { base.BackColor = value; _input.BackColor = value; OnBackColorChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
 		}
 
 		/// <summary>
@@ -501,8 +516,8 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets the foreground color of the control.")]
 		public override Color ForeColor
 		{
-			get => _input.ForeColor;
-			set { _input.ForeColor = value; OnForeColorChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
+			get => base.ForeColor;
+			set { base.ForeColor = value; _input.ForeColor = value; OnForeColorChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
 		}
 
 		/// <summary>
@@ -514,8 +529,8 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets the font of the text displayed by the control.")]
 		public override Font Font
 		{
-			get => _input.Font;
-			set { _input.Font = value; OnFontChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
+			get => base.Font;
+			set { base.Font = value; _input.Font = value; OnFontChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
 		}
 
 		/// <summary>
@@ -551,7 +566,7 @@ namespace NovaUI.Controls
 			_input.GotFocus += (_, __) => { _input.Invalidate(); Invalidate(); };
 			_input.LostFocus += (_, e) => OnLostFocus(e);
 
-			_input.TextChanged += (_, e) => OnTextChanged(e);
+			_input.TextChanged += (_, e) => { base.Text = _input.Text; OnTextChanged(e); };
 			_input.KeyDown += (_, e) => OnKeyDown(e);
 			_input.KeyPress += (_, e) => OnKeyPress(e);
 			_input.KeyUp += (_, e) => OnKeyUp(e);
