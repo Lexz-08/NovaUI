@@ -9,7 +9,7 @@ using NovaUI.Enums;
 using NovaUI.Helpers;
 using NovaUI.Helpers.LibMain;
 
-namespace NovaUI.Controls
+namespace NovaUI.Windows
 {
 	[DefaultEvent("Load")]
 	public class NovaToolWindow : Form
