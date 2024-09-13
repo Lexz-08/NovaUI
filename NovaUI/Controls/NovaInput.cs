@@ -285,6 +285,30 @@ namespace NovaUI.Controls
 			set { _maxLen = value; _input.MaxLength = value; _input.Invalidate(); Invalidate(); }
 		}
 
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
+		public int SelectionStart
+		{
+			get => _input.SelectionStart;
+			set { _input.SelectionStart = value; _input.Invalidate(); Invalidate(); }
+		}
+
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
+		public int SelectionLength
+		{
+			get => _input.SelectionLength;
+			set { _input.SelectionLength = value; _input.Invalidate(); Invalidate(); }
+		}
+
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
+		public string SelectedText
+		{
+			get => _input.SelectedText;
+			set { _input.SelectedText = value; _input.Invalidate(); Invalidate(); }
+		}
+
 		/// <summary>
 		/// Gets or sets the cursor that is displayed when the mouse pointer is over the control.
 		/// </summary>
