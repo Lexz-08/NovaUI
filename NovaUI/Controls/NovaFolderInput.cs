@@ -227,13 +227,8 @@ namespace NovaUI.Controls
 			set { _casing = value; _input.CharacterCasing = value; _input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the text associated with this control.
-		/// </summary>
-		/// <returns>
-		/// The text associated with this control.
-		/// </returns>
-		[Category("Appearance"), Description("Gets or sets the text associated with this control.")]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
 		public string Folder
 		{
 			get => base.Text;
