@@ -59,9 +59,6 @@
     <Compile Include="Windows\NovaStrippedWindow.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="Controls\NovaTabControl.cs">
-      <SubType>Component</SubType>
-    </Compile>
     <Compile Include="Windows\NovaToolWindow.cs">
       <SubType>Form</SubType>
     </Compile>
