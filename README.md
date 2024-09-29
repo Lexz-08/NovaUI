@@ -8,8 +8,8 @@
 An improved (hopefully) version of the [CometUI](https://github.com/Lexz-08/CometUI).
 
 ## Controls
-| Version Available | Control | Description |
-|:---:| --- | --- |
+| Version | Control | Description |
+|:-------:| ------- | ----------- |
 | [1.0.0][LINK_FIRST] - [Latest][LINK_LATEST] | Button | Performs an action when clicked. |
 | [1.0.0][LINK_FIRST] - [Latest][LINK_LATEST] | CheckBox | A toggleable control with text. |
 | [1.0.0][LINK_FIRST] - [Latest][LINK_LATEST] | FileInput | Used to select the full, valid path for files. |
@@ -30,8 +30,8 @@ An improved (hopefully) version of the [CometUI](https://github.com/Lexz-08/Come
 | [1.0.0][LINK_FIRST] - [Latest][LINK_LATEST] | VSlider | Allows for number selection using a knob on a vertical track. |
 
 ## Windows
-| Version Available | Window Type | Description |
-|:---:| --- | --- |
+| Version | Window Type | Description |
+|:-------:| ----------- | ----------- |
 | [1.0.0][LINK_FIRST] - [Latest][LINK_LATEST] | Window | A re-styled window with support for two custom caption buttons. |
 | [1.0.0][LINK_FIRST] - [Latest][LINK_LATEST] | ToolWindow | A re-styled window without a minimize or maximize button with support for two custom caption buttons. |
 | [3.0.11](https://github.com/Lexz-08/NovaUI/releases/3.0.11/download/NovaUI.dll) - [Latest][LINK_LATEST] | StrippedWindow | A re-styled window without a caption header, minimize button, maximize button, or close button.  |
