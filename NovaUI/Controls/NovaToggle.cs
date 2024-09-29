@@ -135,7 +135,9 @@ namespace NovaUI.Controls
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("The AutoSize property of this control is not needed.", true)]
+#pragma warning disable CS0809
 		public override bool AutoSize { get; set; } = true;
+#pragma warning disable CS0809
 
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
