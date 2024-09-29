@@ -546,7 +546,7 @@ namespace NovaUI.Controls
 					e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
 					for (int i = 0; i < _borderWidth; i++)
 						e.Graphics.DrawPath(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
-							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1).Roundify(_borderRadius - i));
+							new Rectangle(i, i + 1, Width - (i * 2) - 1, Height - (i * 2) - 3).Roundify(_borderRadius - i));
 					e.Graphics.FillPath(BackColor.ToBrush(),
 						new Rectangle(0, 0, Width - 1, Height - _borderWidth - 1).Roundify(_borderRadius));
 					e.Graphics.DrawPath(new Pen(BackColor.ToBrush()),
