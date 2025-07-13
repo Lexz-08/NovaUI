@@ -5,7 +5,7 @@
 [![](https://img.shields.io/badge/latest_version-5.4.18-goldenrod)](https://github.com/Lexz-08/NovaUI/releases/tag/5.4.18)
 
 ## Description
-An improved (hopefully) version of the [CometUI](https://github.com/Lexz-08/CometUI).
+An improved (hopefully) version of the [CometUI](https://github.com/Lexz-08/CometUI).<br/>
 .NET Core port available [here](https://github.com/Lexz-08/NovaUI.NetCore).
 
 ## Controls
