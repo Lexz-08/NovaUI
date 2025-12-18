@@ -70,7 +70,14 @@ namespace NovaUI.Helpers
 		/// Converts a given color to a solid brush.
 		/// </summary>
 		/// <param name="color">The color to convert.</param>
-		/// <returns>The convert solid brush.</returns>
+		/// <returns>The converted solid brush.</returns>
 		internal static SolidBrush ToBrush(this Color color) => new SolidBrush(color);
+
+		/// <summary>
+		/// Converts a given color to a pen.
+		/// </summary>
+		/// <param name="color">The color to convert.</param>
+		/// <returns>The converted pen.</returns>
+		internal static Pen ToPen(this Color color) => new Pen(color);
 	}
 }
