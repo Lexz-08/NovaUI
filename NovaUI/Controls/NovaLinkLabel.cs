@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Drawing;
 using System.Windows.Forms;
 
+using NovaUI.Helpers;
 using NovaUI.Helpers.LibMain;
 
 namespace NovaUI.Controls
@@ -12,13 +13,16 @@ namespace NovaUI.Controls
 	[DefaultEvent("Click")]
 	public class NovaLinkLabel : Label
 	{
-		private string _link = "https://www.google.com/";
-		private Color _linkColor = Constants.AccentColor;
-		private Color _foreColor = Constants.TextColor;
-		private bool _useUserSchemeCursor = true;
-		private Cursor _originalCrsr = Cursors.Hand;
+		private readonly SolidBrush textBrush = Color.Transparent.ToBrush();
+		private readonly SolidBrush linkBrush = Color.Transparent.ToBrush();
 
-		private bool _mouseHover = false;
+		private string link = "https://www.google.com/";
+		private Color linkColor = Constants.AccentColor;
+		private bool useUserSchemeCursor = true;
+		private Cursor originalCursor = Cursors.Hand;
+
+		private readonly StringFormat textAlign = Constants.CenterAlign;
+		private bool mouseHover = false;
 
 		/// <summary>
 		/// Occurs when the value of the <see cref="Link"/> property changes.
@@ -32,20 +36,12 @@ namespace NovaUI.Controls
 		[Category("Property"), Description("Occurs when the value of the LinkColor property changes.")]
 		public event EventHandler LinkColorChanged;
 
-		/// <summary>
-		/// Raises the <see cref="LinkChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnLinkChanged(EventArgs e)
 		{
 			LinkChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="LinkColorChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnLinkColorChanged(EventArgs e)
 		{
 			LinkColorChanged?.Invoke(this, e);
@@ -58,8 +54,8 @@ namespace NovaUI.Controls
 		[Category("Behavior"), Description("Gets or sets the link opened when the control is clicked.")]
 		public string Link
 		{
-			get => _link;
-			set { _link = value; OnLinkChanged(EventArgs.Empty); }
+			get => link;
+			set { link = value; OnLinkChanged(EventArgs.Empty); }
 		}
 
 		/// <summary>
@@ -68,8 +64,13 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets the foreground color of the control when hovered over.")]
 		public Color LinkColor
 		{
-			get => _linkColor;
-			set { _linkColor = value; OnLinkColorChanged(EventArgs.Empty); }
+			get => linkColor;
+			set
+			{
+				linkColor = value;
+				if (linkBrush.Color != value) linkBrush.Color = value;
+				OnLinkColorChanged(EventArgs.Empty);
+			}
 		}
 
 		/// <summary>
@@ -78,16 +79,13 @@ namespace NovaUI.Controls
 		[Category("Behavior"), Description("Gets or sets a value indicating whether the control will use the user-selected system scheme cursor.")]
 		public bool UseUserSchemeCursor
 		{
-			get => _useUserSchemeCursor;
-			set { _useUserSchemeCursor = value; Invalidate(); }
+			get => useUserSchemeCursor;
+			set { useUserSchemeCursor = value; Invalidate(); }
 		}
 
 		/// <summary>
 		/// Gets or sets the cursor that is displayed when the mouse pointer is over the control.
 		/// </summary>
-		/// <returns>
-		/// A <see cref="Cursor"/> that represents the cursor to display when the mouse pointer is over the control.
-		/// </returns>
 		[Category("Appearance"), Description("Gets or sets the cursor that is displayed when the mouse pointer is over the control.")]
 		public override Cursor Cursor
 		{
@@ -95,26 +93,9 @@ namespace NovaUI.Controls
 			set
 			{
 				base.Cursor = value;
-				if (!_useUserSchemeCursor) _originalCrsr = value;
+				if (!useUserSchemeCursor) originalCursor = value;
 
 				OnCursorChanged(EventArgs.Empty);
-				Invalidate();
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets the foreground color of the control.
-		/// </summary>
-		[Category("Appearance"), Description("Gets or sets the foreground color of the control.")]
-		public override Color ForeColor
-		{
-			get => base.ForeColor;
-			set
-			{
-				base.ForeColor = value;
-				if (!_mouseHover) _foreColor = value;
-
-				OnForeColorChanged(EventArgs.Empty);
 				Invalidate();
 			}
 		}
@@ -128,6 +109,7 @@ namespace NovaUI.Controls
 			DoubleBuffered = true;
 
 			Font = new Font("Segoe UI", 9f);
+			linkBrush = LinkColor.ToBrush();
 			BackColor = Constants.PrimaryColor;
 			ForeColor = Constants.TextColor;
 		}
@@ -136,10 +118,9 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseEnter(e);
 
-			_mouseHover = true;
-			ForeColor = _linkColor;
+			mouseHover = true;
 			Font = new Font(Font, FontStyle.Underline);
-			if (_useUserSchemeCursor) Cursor = Win32.RegCursor("Hand");
+			if (useUserSchemeCursor) Win32.GetRegistryCursor(Win32.RegistryCursor.Hand, this);
 			Invalidate();
 		}
 
@@ -147,8 +128,7 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseLeave(e);
 
-			_mouseHover = false;
-			ForeColor = _foreColor;
+			mouseHover = false;
 			Font = new Font(Font, FontStyle.Regular);
 			Invalidate();
 		}
@@ -157,7 +137,81 @@ namespace NovaUI.Controls
 		{
 			base.OnClick(e);
 
-			Process.Start(_link);
+			Process.Start(link);
+		}
+
+		protected override void OnForeColorChanged(EventArgs e)
+		{
+			base.OnForeColorChanged(e);
+			if (textBrush.Color != ForeColor) textBrush.Color = ForeColor;
+			Invalidate();
+		}
+
+		protected override void OnTextAlignChanged(EventArgs e)
+		{
+			base.OnTextAlignChanged(e);
+
+			switch (TextAlign)
+			{
+				case ContentAlignment.TopLeft:
+					textAlign.Alignment = StringAlignment.Near;
+					textAlign.LineAlignment = StringAlignment.Near;
+					break;
+				case ContentAlignment.TopCenter:
+					textAlign.Alignment = StringAlignment.Center;
+					textAlign.LineAlignment = StringAlignment.Near;
+					break;
+				case ContentAlignment.TopRight:
+					textAlign.Alignment = StringAlignment.Far;
+					textAlign.LineAlignment = StringAlignment.Near;
+					break;
+				case ContentAlignment.MiddleLeft:
+					textAlign.Alignment = StringAlignment.Near;
+					textAlign.LineAlignment = StringAlignment.Center;
+					break;
+				case ContentAlignment.MiddleCenter:
+					textAlign.Alignment = StringAlignment.Center;
+					textAlign.LineAlignment = StringAlignment.Center;
+					break;
+				case ContentAlignment.MiddleRight:
+					textAlign.Alignment = StringAlignment.Far;
+					textAlign.LineAlignment = StringAlignment.Center;
+					break;
+				case ContentAlignment.BottomLeft:
+					textAlign.Alignment = StringAlignment.Near;
+					textAlign.LineAlignment = StringAlignment.Far;
+					break;
+				case ContentAlignment.BottomCenter:
+					textAlign.Alignment = StringAlignment.Center;
+					textAlign.LineAlignment = StringAlignment.Far;
+					break;
+				case ContentAlignment.BottomRight:
+					textAlign.Alignment = StringAlignment.Far;
+					textAlign.LineAlignment = StringAlignment.Far;
+					break;
+			}
+		}
+
+		protected override void OnPaint(PaintEventArgs e)
+		{
+			base.OnPaint(e);
+
+			e.Graphics.Clear(BackColor);
+
+			e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
+			e.Graphics.DrawString(Text, Font, mouseHover ? linkBrush : textBrush,
+				new Rectangle(0, 0, Width, Height), textAlign);
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			base.Dispose(disposing);
+
+			if (disposing)
+			{
+				textBrush?.Dispose();
+				linkBrush?.Dispose();
+			}
 		}
 	}
 }

@@ -19,24 +19,29 @@ namespace NovaUI.Controls
 	[Designer(typeof(LengthResizeDesigner))]
 	public class NovaFileInput : Control
 	{
-		private Color _borderColor = Constants.BorderColor;
-		private Color _activeColor = Constants.AccentColor;
-		private int _borderWidth = 1;
-		private int _borderRadius = 6;
-		private bool _underlineBorder = false;
-		private bool _useUserSchemeCursor = true;
-		private FileInputType _inputType = FileInputType.OpenFile;
-		private string _dialogTitle = "Please select a file to open...";
-		private string _dialogFilter = "All Files|*.*";
-		private int _filterIndex = 1;
-		private CharacterCasing _casing = CharacterCasing.Normal;
-		private HorizontalAlignment _align = HorizontalAlignment.Left;
-		private bool _readOnly = false;
-		private int _maxLen = 32767;
-		private Cursor _originalCrsr = Cursors.IBeam;
+		private readonly Pen borderFocusedPen = Color.Transparent.ToPen();
+		private readonly Pen borderHoverPen = Color.Transparent.ToPen();
+		private readonly Pen borderNormalPen = Color.Transparent.ToPen();
+		private readonly SolidBrush backBrush = Color.Transparent.ToBrush();
+		private readonly Pen backPen = Color.Transparent.ToPen();
 
-		private TextBox _input = new TextBox();
-		private bool _mouseHover = false;
+		private Color borderColor = Constants.BorderColor;
+		private Color activeColor = Constants.AccentColor;
+		private int borderWidth = 1;
+		private int borderRadius = 6;
+		private bool underlineBorder = false;
+		private bool useUserSchemeCursor = true;
+		private FileInputType inputType = FileInputType.OpenFile;
+		private string dialogTitle = "Please select a file to open...";
+		private string dialogFilter = "All Files|*.*";
+		private int filterIndex = 1;
+		// needed for Visual Studio to auto-fill values in Designer
+		private CharacterCasing casing = CharacterCasing.Normal;
+		private HorizontalAlignment align = HorizontalAlignment.Left;
+		private Cursor originalCursor = Cursors.IBeam;
+
+		private readonly TextBox input = new TextBox();
+		private bool mouseHover = false;
 
 		/// <summary>
 		/// Occurs when the value of the <see cref="BorderColor"/> property changes.
@@ -68,40 +73,24 @@ namespace NovaUI.Controls
 		[Category("Property"), Description("Occurs when a file is selected.")]
 		public event FileSelectedEventHandler FileSelected;
 
-		/// <summary>
-		/// Raises the <see cref="BorderColorChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderColorChanged(EventArgs e)
 		{
 			BorderColorChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="ActiveColorChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnActiveColorChanged(EventArgs e)
 		{
 			ActiveColorChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="BorderWidthChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderWidthChanged(EventArgs e)
 		{
 			BorderWidthChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="BorderRadiusChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderRadiusChanged(EventArgs e)
 		{
 			BorderRadiusChanged?.Invoke(this, e);
@@ -120,8 +109,17 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets the border color of the control.")]
 		public Color BorderColor
 		{
-			get => _borderColor;
-			set { _borderColor = value; OnBorderColorChanged(EventArgs.Empty); }
+			get => borderColor;
+			set
+			{
+				borderColor = value;
+				if (borderNormalPen.Color != value)
+				{
+					borderNormalPen.Color = value;
+					borderHoverPen.Color = value.Lighter(0.1f);
+				}
+				OnBorderColorChanged(EventArgs.Empty);
+			}
 		}
 
 		/// <summary>
@@ -130,16 +128,31 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets the border color of the control when it is selected.")]
 		public Color ActiveColor
 		{
-			get => _activeColor;
-			set { _activeColor = value; OnActiveColorChanged(EventArgs.Empty); }
-		}
-
-		public int BorderWidth
-		{
-			get => _borderWidth;
+			get => activeColor;
 			set
 			{
-				_borderWidth = Math.Max(1, value);
+				activeColor = value;
+				if (borderFocusedPen.Color != value) borderFocusedPen.Color = value;
+				OnActiveColorChanged(EventArgs.Empty);
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets the border width of the control.
+		/// </summary>
+		[Category("Appearance"), Description("Gets or sets the border width of the control.")]
+		public int BorderWidth
+		{
+			get => borderWidth;
+			set
+			{
+				borderWidth = Math.Max(1, value);
+				if (borderNormalPen.Width != value)
+				{
+					borderNormalPen.Width = value;
+					borderHoverPen.Width = value;
+					borderFocusedPen.Width = value;
+				}
 				UpdateInputBounds();
 				OnBorderWidthChanged(EventArgs.Empty);
 			}
@@ -151,15 +164,15 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets the border radius of the control.")]
 		public int BorderRadius
 		{
-			get => _borderRadius;
+			get => borderRadius;
 			set
 			{
 				if (value < 0) value = 0;
 				else if (value > Math.Min(Width, Height) / 2)
 					value = Math.Min(Width, Height) / 2;
-				if (value != _borderRadius)
+				if (value != borderRadius)
 					Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, value, value));
-				_borderRadius = value;
+				borderRadius = value;
 				UpdateInputBounds();
 				OnBorderRadiusChanged(EventArgs.Empty);
 			}
@@ -171,18 +184,18 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets a value indicating whether the control will display a line under the input area of the control or a full border.")]
 		public bool UnderlineBorder
 		{
-			get => _underlineBorder;
-			set { _underlineBorder = value; Invalidate(); }
+			get => underlineBorder;
+			set { underlineBorder = value; Invalidate(); }
 		}
 
 		/// <summary>
-		/// Gets or sets a value indicating whether the control will use the user-selected system scheme cursor.
+		/// Gets or sets a value indicating wheter the control will use the user-selected system scheme cursor.
 		/// </summary>
 		[Category("Behavior"), Description("Gets or sets a value indicating whether the control will use the user-selected system scheme cursor.")]
 		public bool UseUserSchemeCursor
 		{
-			get => _useUserSchemeCursor;
-			set { _useUserSchemeCursor = value; Invalidate(); }
+			get => useUserSchemeCursor;
+			set { useUserSchemeCursor = value; Invalidate(); }
 		}
 
 		/// <summary>
@@ -191,8 +204,8 @@ namespace NovaUI.Controls
 		[Category("File Dialog"), Description("Gets or sets the title of the file dialog.")]
 		public string DialogTitle
 		{
-			get => _dialogTitle;
-			set { _dialogTitle = value; Invalidate(); }
+			get => dialogTitle;
+			set { dialogTitle = value; Invalidate(); }
 		}
 
 		/// <summary>
@@ -201,8 +214,8 @@ namespace NovaUI.Controls
 		[Category("File Dialog"), Description("Gets or sets whether the control should display an OpenFileDialog or a SaveFileDialog.")]
 		public FileInputType FileInputType
 		{
-			get => _inputType;
-			set { _inputType = value; Invalidate(); }
+			get => inputType;
+			set { inputType = value; Invalidate(); }
 		}
 
 		/// <summary>
@@ -211,8 +224,8 @@ namespace NovaUI.Controls
 		[Category("File Dialog"), Description("Gets or sets the file filter for the file dialog.")]
 		public string DialogFilter
 		{
-			get => _dialogFilter;
-			set { _dialogFilter = value; Invalidate(); }
+			get => dialogFilter;
+			set { dialogFilter = value; Invalidate(); }
 		}
 
 		/// <summary>
@@ -221,25 +234,24 @@ namespace NovaUI.Controls
 		[Category("File Dialog"), Description("Gets or sets the default-selected filter index for the file dialog.")]
 		public int FilterIndex
 		{
-			get => _filterIndex;
-			set { _filterIndex = value; Invalidate(); }
+			get => filterIndex;
+			set { filterIndex = value; Invalidate(); }
 		}
 
 		/// <summary>
 		/// Gets or sets a value indicating whether the control modifies the case of characters as they are typed.
 		/// </summary>
-		/// <returns>
-		/// One of the <see cref="CharacterCasing"/> enumeration values that specifies whether the control modifies the case of characters. The default is <see cref="CharacterCasing.Normal"/>.
-		/// </returns>
 		[Category("Behavior"), Description("Gets or sets a value indicating whether the control modifies the case of characters as they are typed.")]
 		public CharacterCasing CharacterCasing
 		{
-			get
+			get => casing = input.CharacterCasing;
+			set
 			{
-				_casing = _input.CharacterCasing;
-				return _casing;
+				casing = value;
+				input.CharacterCasing = value;
+				input.Invalidate();
+				Invalidate();
 			}
-			set { _casing = value; _input.CharacterCasing = value; _input.Invalidate(); Invalidate(); }
 		}
 
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
@@ -247,55 +259,38 @@ namespace NovaUI.Controls
 		public string File
 		{
 			get => base.Text;
-			set { base.Text = value; _input.Text = value; _input.Invalidate(); Invalidate(); }
+			set
+			{
+				base.Text = value;
+				input.Text = value;
+				input.Invalidate();
+				Invalidate();
+			}
 		}
 
 		/// <summary>
 		/// Gets or sets how text is aligned in a control.
 		/// </summary>
-		/// <returns>
-		/// One of the <see cref="HorizontalAlignment"/> enumeration values that specifies how text is aligned in the control. The default is <see cref="HorizontalAlignment.Left"/>.
-		/// </returns>
 		[Category("Behavior"), Description("Gets or sets how text is aligned in a control.")]
 		public HorizontalAlignment TextAlign
 		{
-			get
+			get => align = input.TextAlign;
+			set
 			{
-				_align = _input.TextAlign;
-				return _align;
+				align = value;
+				input.TextAlign = value;
+				input.Invalidate();
+				Invalidate();
 			}
-			set { _align = value; _input.TextAlign = value; _input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets a value indicating whether text in the control is read-only.
-		/// </summary>
-		/// <returns>
-		/// <see langword="true"/> if the control is read-only; otherwise <see langword="false"/>. The default is <see langword="false"/>.
-		/// </returns>
-		[Category("Behavior"), Description("Gets or sets a value indicating whether text in the control is read-only.")]
-		public bool ReadOnly
-		{
-			get
-			{
-				_readOnly = _input.ReadOnly;
-				return _readOnly;
-			}
-			set { _readOnly = value; _input.ReadOnly = value; _input.Invalidate(); Invalidate(); }
-		}
-
-		/// <summary>
-		/// Gets the file extension of the currently file path.
-		/// </summary>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
-		public string Extension => Path.GetExtension(_input.Text);
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
+		public string Extension => Path.GetExtension(input.Text);
 
 		/// <summary>
 		/// Gets or sets the cursor that is displayed when the mouse pointer is over the control.
 		/// </summary>
-		/// <returns>
-		/// A <see cref="Cursor"/> that represents the cursor to display when the mouse pointer is over the control.
-		/// </returns>
 		[Category("Appearance"), Description("Gets or sets the cursor that is displayed when the mouse pointer is over the control.")]
 		public override Cursor Cursor
 		{
@@ -303,59 +298,20 @@ namespace NovaUI.Controls
 			set
 			{
 				base.Cursor = value;
-				_input.Cursor = value;
-				if (!_useUserSchemeCursor) _originalCrsr = value;
+				input.Cursor = value;
+				if (!UseUserSchemeCursor) originalCursor = value;
 
 				OnCursorChanged(EventArgs.Empty);
-				_input.Invalidate();
+				input.Invalidate();
 				Invalidate();
 			}
-		}
-
-		/// <summary>
-		/// Gets or sets the background color of the control.
-		/// </summary>
-		[Category("Appearance"), Description("Gets or sets the background color of the control.")]
-		public override Color BackColor
-		{
-			get => base.BackColor;
-			set { base.BackColor = value; _input.BackColor = value; OnBackColorChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
-		}
-
-		/// <summary>
-		/// Gets or sets the foreground color of the control.
-		/// </summary>
-		[Category("Appearance"), Description("Gets or sets the foreground color of the control.")]
-		public override Color ForeColor
-		{
-			get => base.ForeColor;
-			set { base.ForeColor = value; _input.ForeColor = value; OnForeColorChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
-		}
-
-		/// <summary>
-		/// Gets or sets the font of the text displayed by the control.
-		/// </summary>
-		/// <returns>
-		/// The <see cref="Font"/> to apply to the text displayed by the control. The default is the value of the <see cref="Control.DefaultFont"/> property.
-		/// </returns>
-		[Category("Appearance"), Description("Gets or sets the font of the text displayed by the control.")]
-		public override Font Font
-		{
-			get => base.Font;
-			set { base.Font = value; _input.Font = value; OnFontChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
 		}
 
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
 		public override string Text => string.Empty;
 
-		/// <summary>
-		/// Gets a value indicating whether the control has input focus.
-		/// </summary>
-		/// <returns>
-		/// <see langword="true"/> if the control has focus; otherwise, <see langword="false."/>
-		/// </returns>
-		public override bool Focused => _input.Focused;
+		public override bool Focused => input.Focused;
 
 		public NovaFileInput()
 		{
@@ -366,32 +322,35 @@ namespace NovaUI.Controls
 			DoubleBuffered = true;
 
 			Font = new Font("Segoe UI", 9f);
+			borderFocusedPen = activeColor.ToPen();
+			borderHoverPen = borderColor.Lighter(0.1f).ToPen();
+			borderNormalPen = borderColor.ToPen();
 			BackColor = Constants.PrimaryColor;
 			ForeColor = Constants.TextColor;
 			Width = 200;
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 
-			_input.ReadOnly = true;
-			_input.BorderStyle = BorderStyle.None;
-			_input.Location = new Point(8, 8);
-			_input.Width = Width - 16;
-			_input.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+			input.ReadOnly = true;
+			input.BorderStyle = BorderStyle.None;
+			input.Location = new Point(8, 8);
+			input.Width = Width - 16;
+			input.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
-			_input.GotFocus += (_, __) => { _input.Invalidate(); Invalidate(); };
-			_input.LostFocus += (_, e) => OnLostFocus(e);
+			input.GotFocus += (_, __) => { input.Invalidate(); Invalidate(); };
+			input.LostFocus += (_, e) => OnLostFocus(e);
 
-			_input.TextChanged += (_, e) => { base.Text = _input.Text; OnTextChanged(e); };
-			_input.KeyDown += (_, e) => OnKeyDown(e);
-			_input.KeyPress += (_, e) => OnKeyPress(e);
-			_input.KeyUp += (_, e) => OnKeyUp(e);
+			input.TextChanged += (_, e) => { base.Text = input.Text; OnTextChanged(e); };
+			input.KeyDown += (_, e) => OnKeyDown(e);
+			input.KeyPress += (_, e) => OnKeyPress(e);
+			input.KeyUp += (_, e) => OnKeyUp(e);
 
-			_input.MouseEnter += (_, e) => OnMouseEnter(e);
-			_input.MouseLeave += (_, e) => OnMouseLeave(e);
+			input.MouseEnter += (_, e) => OnMouseEnter(e);
+			input.MouseLeave += (_, e) => OnMouseLeave(e);
 
-			_input.Click += (_, e) => OnClick(e);
-			_input.MouseClick += (_, e) => OnMouseClick(e);
+			input.Click += (_, e) => OnClick(e);
+			input.MouseClick += (_, e) => OnMouseClick(e);
 
-			Controls.Add(_input);
+			Controls.Add(input);
 
 			UpdateHeight();
 			Invalidate();
@@ -399,27 +358,23 @@ namespace NovaUI.Controls
 
 		private void UpdateHeight()
 		{
-			if (Height < _input.Height + 16 || Height > _input.Height + 16) Height = _input.Height + 16;
-			if (!_input.Multiline) Height = _input.Height + 16;
+			if (Height < input.Height + 16 || Height > input.Height + 16) Height = input.Height + 16;
 		}
 
 		private void UpdateInputBounds()
 		{
-			_input.Location = new Point(8 + (_borderRadius == 0 ? 0 : _borderRadius / (_underlineBorder ? 2 : 4)) + _borderWidth, _input.Location.Y);
-			_input.Width = Width - 16 - (2 * (_borderRadius == 0 ? 0 : _borderRadius / (_underlineBorder ? 2 : 4))) - (_borderWidth * 2);
+			input.Location = new Point(8 + (borderRadius == 0 ? 0 : borderRadius / (underlineBorder ? 2 : 4)) + borderWidth, input.Location.Y);
+			input.Width = Width - 16 - (2 * (borderRadius == 0 ? 0 : borderRadius / (underlineBorder ? 2 : 4))) - (borderWidth * 2);
 		}
 
-		/// <summary>
-		/// Clears the current folder path.
-		/// </summary>
-		public void ClearFolder() => _input.Clear();
+		public void ClearFile() => input.Clear();
 
 		protected override void OnResize(EventArgs e)
 		{
 			base.OnResize(e);
 
 			UpdateHeight();
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 		}
 
 		protected override void OnSizeChanged(EventArgs e)
@@ -427,16 +382,16 @@ namespace NovaUI.Controls
 			base.OnSizeChanged(e);
 
 			UpdateHeight();
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 		}
 
 		protected override void OnMouseEnter(EventArgs e)
 		{
 			base.OnMouseEnter(e);
 
-			_mouseHover = true;
-			if (_useUserSchemeCursor) Cursor = Win32.RegCursor("IBeam");
-			else Cursor = _originalCrsr;
+			mouseHover = true;
+			if (useUserSchemeCursor) Win32.GetRegistryCursor(Win32.RegistryCursor.IBeam, this);
+			else Cursor = originalCursor;
 			Invalidate();
 		}
 
@@ -444,7 +399,7 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseLeave(e);
 
-			_mouseHover = false;
+			mouseHover = false;
 			Invalidate();
 		}
 
@@ -452,7 +407,7 @@ namespace NovaUI.Controls
 		{
 			base.OnGotFocus(e);
 
-			_input.Focus();
+			input.Focus();
 			Invalidate();
 		}
 
@@ -467,39 +422,39 @@ namespace NovaUI.Controls
 		{
 			base.OnClick(e);
 
-			switch (_inputType)
+			switch (inputType)
 			{
 				case FileInputType.OpenFile:
-					using (OpenFileDialog ofd = new OpenFileDialog
+					using (OpenFileDialog ofd = new OpenFileDialog()
 					{
-						Title = _dialogTitle,
-						Filter = _dialogFilter,
-						FilterIndex = _filterIndex
+						Title = dialogTitle,
+						Filter = dialogFilter,
+						FilterIndex = filterIndex
 					}) if (ofd.ShowDialog() == DialogResult.OK)
 						{
-							string old = _input.Text;
-							_input.Text = ofd.FileName;
+							string old = input.Text;
+							input.Text = ofd.FileName;
 
-							if (!_input.Text.Equals(old)) OnFileSelected(new FileSelectedEventArgs(_input.Text));
+							if (!input.Text.Equals(old)) OnFileSelected(new FileSelectedEventArgs(input.Text));
 						}
 					break;
 				case FileInputType.SaveFile:
-					using (SaveFileDialog sfd = new SaveFileDialog
+					using (SaveFileDialog sfd = new SaveFileDialog()
 					{
-						Title = _dialogTitle,
-						Filter = _dialogFilter,
-						FilterIndex = _filterIndex
+						Title = dialogTitle,
+						Filter = dialogFilter,
+						FilterIndex = filterIndex
 					}) if (sfd.ShowDialog() == DialogResult.OK)
 						{
-							string old = _input.Text;
-							_input.Text = sfd.FileName;
+							string old = input.Text;
+							input.Text = sfd.FileName;
 
-							if (!_input.Text.Equals(old)) OnFileSelected(new FileSelectedEventArgs(_input.Text));
+							if (!input.Text.Equals(old)) OnFileSelected(new FileSelectedEventArgs(input.Text));
 						}
 					break;
 			}
 
-			_input.Focus();
+			input.Focus();
 			Invalidate();
 		}
 
@@ -507,15 +462,7 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseClick(e);
 
-			_input.Focus();
-			Invalidate();
-		}
-
-		protected override void OnMouseDown(MouseEventArgs e)
-		{
-			base.OnMouseDown(e);
-
-			_input.Focus();
+			input.Focus();
 			Invalidate();
 		}
 
@@ -523,13 +470,35 @@ namespace NovaUI.Controls
 		{
 			base.OnFontChanged(e);
 
+			input.Font = Font;
 			UpdateHeight();
 		}
 
 		protected override void OnParentBackColorChanged(EventArgs e)
 		{
 			base.OnParentBackColorChanged(e);
-			_input.Invalidate();
+			input.Invalidate();
+			Invalidate();
+		}
+
+		protected override void OnBackColorChanged(EventArgs e)
+		{
+			base.OnBackColorChanged(e);
+			if (backBrush.Color != BackColor)
+			{
+				backBrush.Color = BackColor;
+				backPen.Color = BackColor;
+			}
+			input.BackColor = BackColor;
+			input.Invalidate();
+			Invalidate();
+		}
+
+		protected override void OnForeColorChanged(EventArgs e)
+		{
+			base.OnForeColorChanged(e);
+			input.ForeColor = ForeColor;
+			input.Invalidate();
 			Invalidate();
 		}
 
@@ -537,48 +506,46 @@ namespace NovaUI.Controls
 		{
 			base.OnPaint(e);
 
-			e.Graphics.Clear(Parent.BackColor);
+			e.Graphics.Clear(Parent != null ? Parent.BackColor : Color.Transparent);
 
-			if (_underlineBorder)
+			if (underlineBorder)
 			{
-				if (_borderRadius > 0)
-				{
-					e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-					for (int i = 0; i < _borderWidth; i++)
-						e.Graphics.DrawPath(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
-							new Rectangle(i, i + 1, Width - (i * 2) - 1, Height - (i * 2) - 3).Roundify(_borderRadius - i));
-					e.Graphics.FillPath(BackColor.ToBrush(),
-						new Rectangle(0, 0, Width - 1, Height - _borderWidth - 1).Roundify(_borderRadius));
-					e.Graphics.DrawPath(new Pen(BackColor.ToBrush()),
-						new Rectangle(0, 0, Width - 1, Height - _borderWidth - 1).Roundify(_borderRadius));
-				}
-				else
-				{
-					e.Graphics.FillRectangle(BackColor.ToBrush(),
-						new Rectangle(0, 0, Width, Height - _borderWidth));
-					e.Graphics.DrawRectangle(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
-						new Rectangle(0, Height - 1, Width, _borderWidth));
-				}
+				e.Graphics.FillRectangle(backBrush,
+					new Rectangle(0, 0, Width, Height - borderWidth));
+				e.Graphics.DrawRectangle(Focused ? borderFocusedPen : (mouseHover ? borderHoverPen : borderNormalPen),
+					new Rectangle(0, Height - borderWidth, Width, borderWidth));
 			}
 			else
 			{
-				if (_borderRadius > 0)
+				if (borderRadius > 0)
 				{
 					e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-					e.Graphics.FillPath(BackColor.ToBrush(),
-						new Rectangle(_borderWidth - 1, _borderWidth - 1, Width - (_borderWidth * 2) + 1, Height - (_borderWidth * 2) + 1).Roundify(Math.Max(1, _borderRadius - _borderWidth)));
-					for (int i = 0; i < _borderWidth; i++)
-						e.Graphics.DrawPath(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
-							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1).Roundify(_borderRadius - i));
+					e.Graphics.FillPath(backBrush,
+						new Rectangle(borderWidth - 1, borderWidth - 1, Width - (borderWidth * 2) + 1, Height - (borderWidth * 2) + 1).Round(Math.Max(1, borderRadius - borderWidth)));
+					e.Graphics.DrawPath(Focused ? borderFocusedPen : (mouseHover ? borderHoverPen : borderNormalPen),
+						new RectangleF(borderWidth / 2f - 0.5f, borderWidth / 2f - 0.5f, Width - borderWidth, Height - borderWidth).Round(borderRadius));
 				}
 				else
 				{
-					e.Graphics.FillRectangle(BackColor.ToBrush(),
-						new Rectangle(_borderWidth, _borderWidth, Width - (_borderWidth * 2), Height - (_borderWidth * 2)));
-					for (int i = 0; i < _borderWidth; i++)
-						e.Graphics.DrawRectangle(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
-							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1));
+					e.Graphics.FillRectangle(backBrush,
+						new Rectangle(borderWidth, borderWidth, Width - (borderWidth * 2), Height - (borderWidth * 2)));
+					e.Graphics.DrawRectangle(Focused ? borderFocusedPen : (mouseHover ? borderHoverPen : borderNormalPen),
+						borderWidth / 2f, borderWidth / 2f, Width - borderWidth, Height - borderWidth);
 				}
+			}
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			base.Dispose(disposing);
+
+			if (disposing)
+			{
+				borderFocusedPen?.Dispose();
+				borderHoverPen?.Dispose();
+				borderNormalPen?.Dispose();
+				backBrush?.Dispose();
+				backPen?.Dispose();
 			}
 		}
 	}

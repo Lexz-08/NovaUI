@@ -13,25 +13,36 @@ namespace NovaUI.Controls
 	[DefaultEvent("ValueChanged")]
 	public class NovaSlider : Control
 	{
-		private Color _trackColor = Constants.SecondaryColor;
-		private Color _knobColor = Constants.BorderColor;
-		private Color _dragColor = Constants.AccentColor;
-		private int _value = 50;
-		private int _defValue = 50;
-		private int _maximum = 100;
-		private int _minimum = 0;
-		private bool _showValue = false;
-		private SliderStyle _sliderStyle = SliderStyle.SolidTrack;
-		private SliderKnobStyle _knobStyle = SliderKnobStyle.SolidKnob;
-		private bool _useUserSchemeCursor = true;
-		private Cursor _originalCrsr = Cursors.Hand;
+		private readonly SolidBrush trackBrush = Color.Transparent.ToBrush();
+		private readonly Pen trackPen = new Pen(Color.Transparent, 2);
+		private readonly SolidBrush knobNormalBrush = Color.Transparent.ToBrush();
+		private readonly SolidBrush knobHoverBrush = Color.Transparent.ToBrush();
+		private readonly SolidBrush knobDownBrush = Color.Transparent.ToBrush();
+		private readonly Pen knobNormalPen = Color.Transparent.ToPen();
+		private readonly Pen knobHoverPen = Color.Transparent.ToPen();
+		private readonly Pen knobDownPen = Color.Transparent.ToPen();
+		private readonly SolidBrush textBrush = Color.Transparent.ToBrush();
+		private Font knobFont;
 
-		private Rectangle _knob;
-		private bool _canDrag = false;
-		private int _offsetX = 0;
+		private Color trackColor = Constants.SecondaryColor;
+		private Color knobColor = Constants.BorderColor;
+		private Color dragColor = Constants.AccentColor;
+		private int value = 50;
+		private int defaultValue = 50;
+		private int maximum = 100;
+		private int minimum = 0;
+		private bool showValue = false;
+		private SliderStyle sliderStyle = SliderStyle.SolidTrack;
+		private SliderKnobStyle knobStyle = SliderKnobStyle.SolidKnob;
+		private bool useUserSchemeCursor = true;
+		private Cursor originalCursor = Cursors.Hand;
 
-		private bool _mouseHover = false;
-		private bool _mouseDown = false;
+		private Rectangle knob;
+		private bool canDrag = false;
+		private int offsetX = 0;
+
+		private bool mouseHover = false;
+		private bool mouseDown = false;
 
 		/// <summary>
 		/// Occurs when the value of the <see cref="TrackColor"/> property changes.
@@ -60,207 +71,185 @@ namespace NovaUI.Controls
 		/// <summary>
 		/// Occurs when the user drags the knob along the slider track.
 		/// </summary>
-		[Category("Behavior"), Description("Occurs when the user drags the knob along the slider track.")]
+		[Category("Property"), Description("Occurs when the user drags the knob along the slider track.")]
 		public event EventHandler SliderDrag;
 
-		/// <summary>
-		/// Raises the <see cref="TrackColorChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnTrackColorChanged(EventArgs e)
 		{
 			TrackColorChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="KnobColorChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnKnobColorChanged(EventArgs e)
 		{
 			KnobColorChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="DragColorChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnDragColorChanged(EventArgs e)
 		{
 			DragColorChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="ValueChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
-		protected void OnValueChanged(EventArgs e)
+		protected virtual void OnValueChanged(EventArgs e)
 		{
 			ValueChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="SliderDrag"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnSliderDrag(EventArgs e)
 		{
 			SliderDrag?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Gets or sets the background color of the control slider track.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets the background color of the control slider track.")]
 		public Color TrackColor
 		{
-			get => _trackColor;
-			set { _trackColor = value; OnTrackColorChanged(EventArgs.Empty); }
+			get => trackColor;
+			set
+			{
+				trackColor = value;
+				if (trackBrush.Color != value)
+				{
+					trackBrush.Color = value;
+					trackPen.Color = value;
+				}
+				OnTrackColorChanged(EventArgs.Empty);
+			}
 		}
 
-		/// <summary>
-		/// Gets or sets the background color of the control slider knob.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets the background color of the control slider knob.")]
 		public Color KnobColor
 		{
-			get => _knobColor;
-			set { _knobColor = value; OnKnobColorChanged(EventArgs.Empty); }
+			get => knobColor;
+			set
+			{
+				knobColor = value;
+				if (knobNormalBrush.Color != value)
+				{
+					knobNormalBrush.Color = value;
+					knobHoverBrush.Color = value.Lighter(0.1f);
+					knobNormalPen.Color = value;
+					knobNormalPen.Color = value.Lighter(0.1f);
+				}
+				OnKnobColorChanged(EventArgs.Empty);
+			}
 		}
 
-		/// <summary>
-		/// Gets or sets the background color of the control slider knob when it's selected.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets the background color of the control slider knob when it's selected.")]
 		public Color DragColor
 		{
-			get => _dragColor;
-			set { _dragColor = value; OnDragColorChanged(EventArgs.Empty); }
+			get => dragColor;
+			set
+			{
+				dragColor = value;
+				if (knobHoverBrush.Color != value)
+				{
+					knobDownBrush.Color = value;
+					knobDownPen.Color = value;
+				}
+				OnDragColorChanged(EventArgs.Empty);
+			}
 		}
 
-		/// <summary>
-		/// Gets or sets the value associated with this control slider.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Slider"), Description("Gets or sets the value associated with this control slider.")]
 		public int Value
 		{
-			get => _value;
+			get => value;
 			set
 			{
-				if (_maximum < value) value = _maximum;
-				else if (_minimum > value) value = _minimum;
-				_value = value;
+				value = Math.Max(minimum, Math.Min(value, maximum));
+				this.value = value;
 				OnValueChanged(EventArgs.Empty);
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets the default value associated with this control slider.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Slider"), Description("Gets or sets the default value associated with this control slider.")]
 		public int DefaultValue
 		{
-			get => _defValue;
+			get => defaultValue;
 			set
 			{
-				if (_maximum < value) value = _maximum;
-				else if (_minimum > value) value = _minimum;
-				_defValue = value;
-				Invalidate();
+				value = Math.Max(minimum, Math.Min(value, maximum));
+				defaultValue = value;
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets the maximum value the control slider can be at.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Slider"), Description("Gets or sets the maximum value the control slider can be at.")]
 		public int Maximum
 		{
-			get => _maximum;
+			get => maximum;
 			set
 			{
-				if (value < _value)
+				if (value < this.value)
 				{
-					_value = value;
+					this.value = value;
 					OnValueChanged(EventArgs.Empty);
 				}
-				if (value < _minimum) _minimum = value - 2;
-				_maximum = value;
+				if (value < minimum) minimum = value - 2;
+				maximum = value;
 				Invalidate();
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets the minimum value the control slider can be at.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Slider"), Description("Gets or sets the minimum value the control slider can be at.")]
 		public int Minimum
 		{
-			get => _minimum;
+			get => minimum;
 			set
 			{
-				if (value > _value)
+				if (value > this.value)
 				{
-					_value = value;
+					this.value = value;
 					OnValueChanged(EventArgs.Empty);
 				}
-				if (value > _maximum) _maximum = value + 2;
-				_minimum = value;
+				if (value > maximum) maximum = value + 2;
+				minimum = value;
 				Invalidate();
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets a value indicating whether the control will display its current value.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets a value indicating whether the control will display its current value.")]
 		public bool ShowValue
 		{
-			get => _showValue;
-			set { _showValue = value; Invalidate(); }
+			get => showValue;
+			set { showValue = value; Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets whether the control slider renders as a solid track or a hollow track.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets whether the control slider renders as a solid track or a hollow track.")]
 		public SliderStyle SliderStyle
 		{
-			get => _sliderStyle;
-			set { _sliderStyle = value; Invalidate(); }
+			get => sliderStyle;
+			set { sliderStyle = value; Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets whether the control slider knob renders as a solid knob or a hollow knob.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets whether the control slider knob renders as a solid knob or a hollow knob.")]
 		public SliderKnobStyle KnobStyle
 		{
-			get => _knobStyle;
-			set { _knobStyle = value; Invalidate(); }
+			get => knobStyle;
+			set { knobStyle = value; Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets a value indicating whether the control will use the user-selected system scheme cursor.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Behavior"), Description("Gets or sets a value indicating whether the control will use the user-selected system scheme cursor.")]
 		public bool UseUserSchemeCursor
 		{
-			get => _useUserSchemeCursor;
-			set { _useUserSchemeCursor = value; Invalidate(); }
+			get => useUserSchemeCursor;
+			set { useUserSchemeCursor = value; Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the cursor that is displayed when the mouse pointer is over the control.
-		/// </summary>
-		/// <returns>
-		/// A <see cref="Cursor"/> that represents the cursor to display when the mouse pointer is over the control.
-		/// </returns>
 		[Category("Appearance"), Description("Gets or sets the cursor that is displayed when the mouse pointer is over the control.")]
 		public override Cursor Cursor
 		{
@@ -268,7 +257,7 @@ namespace NovaUI.Controls
 			set
 			{
 				base.Cursor = value;
-				if (!_useUserSchemeCursor) _originalCrsr = value;
+				if (!useUserSchemeCursor) originalCursor = value;
 
 				OnCursorChanged(EventArgs.Empty);
 				Invalidate();
@@ -299,12 +288,9 @@ namespace NovaUI.Controls
 			Height = 16;
 		}
 
-		/// <summary>
-		/// Resets, really just "sets", the value of the <see cref="Value"/> property to the value of the <see cref="DefaultValue"/> property.
-		/// </summary>
 		public void ResetValue()
 		{
-			_value = _defValue;
+			value = defaultValue;
 
 			CalculateKnobPosition();
 			OnValueChanged(EventArgs.Empty);
@@ -312,29 +298,30 @@ namespace NovaUI.Controls
 
 		private void CalculateValue(MouseEventArgs e)
 		{
-			_knob.X = Math.Max(Height / 2, Math.Min(e.X - _offsetX, Width - (Height / 2) - 1));
+			knob.X = Math.Max(Height / 2, Math.Min(e.X - offsetX, Width - (Height / 2) - 1));
 			double width = Width - Height;
-			double knobX = _knob.X - (Height / 2);
+			double knobX = knob.X - (Height / 2);
 			double percent = knobX / width;
 
-			_value = (int)Math.Round((percent * (_maximum - _minimum)) + _minimum, 0);
+			value = (int)Math.Round((percent * (maximum - minimum)) + minimum, 0);
 			OnValueChanged(EventArgs.Empty);
 		}
-		
+
 		private void CalculateKnobPosition()
 		{
 			double width = Width - Height;
-			double num = _value - _minimum;
-			double den = _maximum - _minimum;
-			_knob.X = Math.Max((Height / 2) + 1, Math.Min((int)((num / den * width) + (Height / 2)), Width - (Height / 2) - 1));
+			double num = value - minimum;
+			double den = maximum - minimum;
+			knob.X = Math.Max((Height / 2) + 1, Math.Min((int)((num / den * width) + (Height / 2)), Width - (Height / 2) - 1));
 
 			Invalidate();
 		}
 
 		private void UpdateSlider()
 		{
-			_knob.Height = Height;
-			_knob.Width = _knob.Height;
+			knob.Height = Height;
+			knob.Width = knob.Height;
+			knobFont = new Font(Font.Name, knob.Height / 3f);
 
 			CalculateKnobPosition();
 		}
@@ -357,9 +344,9 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseEnter(e);
 
-			_mouseHover = true;
-			if (_useUserSchemeCursor) Cursor = Win32.RegCursor("Hand");
-			else Cursor = _originalCrsr;
+			mouseHover = true;
+			if (useUserSchemeCursor) Win32.GetRegistryCursor(Win32.RegistryCursor.Hand, this);
+			else Cursor = originalCursor;
 			Invalidate();
 		}
 
@@ -367,7 +354,7 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseLeave(e);
 
-			_mouseHover = false;
+			mouseHover = false;
 			Invalidate();
 		}
 
@@ -375,18 +362,17 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseDown(e);
 
-			_mouseDown = true;
-			_canDrag = true;
-			_offsetX = e.X - _knob.X;
-
-			int cX = _knob.X;
-			int cY = _knob.Y + (_knob.Height / 2);
+			mouseDown = true;
+			canDrag = true;
+			offsetX = e.X - knob.X;
+			int cX = knob.X;
+			int cY = knob.Y + (knob.Height / 2);
 			int radius = Height / 2;
 
 			if (!(Math.Pow(e.X - cX, 2) + Math.Pow(e.Y - cY, 2) <= Math.Pow(radius, 2)))
 			{
-				_offsetX = 0;
-				_knob.X = e.X - _offsetX;
+				offsetX = 0;
+				knob.X = e.X - offsetX;
 			}
 
 			CalculateValue(e);
@@ -397,9 +383,9 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseUp(e);
 
-			_mouseDown = false;
-			_canDrag = false;
-			_offsetX = 0;
+			mouseDown = false;
+			canDrag = false;
+			offsetX = 0;
 			Invalidate();
 		}
 
@@ -407,7 +393,7 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseMove(e);
 
-			if (_canDrag)
+			if (canDrag)
 			{
 				CalculateValue(e);
 				CalculateKnobPosition();
@@ -423,34 +409,59 @@ namespace NovaUI.Controls
 			Invalidate();
 		}
 
+		protected override void OnForeColorChanged(EventArgs e)
+		{
+			base.OnForeColorChanged(e);
+			if (textBrush.Color != ForeColor) textBrush.Color = ForeColor;
+		}
+
 		protected override void OnPaint(PaintEventArgs e)
 		{
 			base.OnPaint(e);
 
-			e.Graphics.Clear(Parent.BackColor);
+			e.Graphics.Clear(Parent != null ? Parent.BackColor : Color.Transparent);
 
 			Rectangle slider = new Rectangle(Height / 2, Height / 4, Width - Height, Height / 2);
 			int radius = slider.Height / 2;
 
 			e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
 
-			if (_sliderStyle == SliderStyle.SolidTrack)
-				e.Graphics.FillPath(_trackColor.ToBrush(), slider.Roundify(radius));
-			else if (_sliderStyle == SliderStyle.BorderTrack)
-				e.Graphics.DrawPath(new Pen(_trackColor, 2f), slider.Roundify(radius));
-			if (_knobStyle == SliderKnobStyle.SolidKnob)
-				e.Graphics.FillEllipse((_mouseHover ? (_mouseDown ? _dragColor : _knobColor.Lighter(0.1f)) : _knobColor).ToBrush(),
-					_knob.X - (_knob.Width / 2), _knob.Y - 1, _knob.Width, _knob.Height);
-			else if (_knobStyle == SliderKnobStyle.BorderKnob)
-				e.Graphics.DrawEllipse(new Pen(_mouseHover ? (_mouseDown ? _dragColor : _knobColor.Lighter(0.1f)) : _knobColor, 2f),
-					_knob.X - (_knob.Width / 2), _knob.Y - 1, _knob.Width, _knob.Height);
+			if (sliderStyle == SliderStyle.SolidTrack)
+				e.Graphics.FillPath(trackBrush, slider.Round(radius));
+			else if (sliderStyle == SliderStyle.BorderTrack)
+				e.Graphics.DrawPath(trackPen, slider.Round(radius));
+			if (knobStyle == SliderKnobStyle.SolidKnob)
+				e.Graphics.FillEllipse(mouseHover ? (mouseDown ? knobDownBrush : knobHoverBrush) : knobNormalBrush,
+					knob.X - (knob.Width / 2), knob.Y - 1, knob.Width, knob.Height);
+			else if (knobStyle == SliderKnobStyle.BorderKnob)
+				e.Graphics.DrawEllipse(mouseHover ? (mouseDown ? knobDownPen : knobHoverPen) : knobNormalPen,
+					knob.X - (knob.Width / 2), knob.Y - 1, knob.Width, knob.Height);
 
-			if (_showValue)
+			if (showValue)
 			{
 				e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
-				e.Graphics.DrawString(_value.ToString(), new Font(Font.Name, (float)(_knob.Height / 3f)), ForeColor.ToBrush(),
-					new Rectangle(_knob.X - (_knob.Width / 2), _knob.Y + (_knob.Height % 2 == 0 ? 0 : 1), _knob.Width, _knob.Height), Constants.CenterAlign);
+				e.Graphics.DrawString(value.ToString(), knobFont, textBrush,
+					new Rectangle(knob.X - (knob.Width / 2), knob.Y + (knob.Height % 2 == 0 ? 0 : 1), knob.Width, knob.Height),
+					Constants.CenterAlign);
+			}
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			base.Dispose(disposing);
+
+			if (disposing)
+			{
+				trackBrush?.Dispose();
+				trackPen?.Dispose();
+				knobNormalBrush?.Dispose();
+				knobHoverBrush?.Dispose();
+				knobDownBrush?.Dispose();
+				knobNormalPen?.Dispose();
+				knobHoverPen?.Dispose();
+				knobDownPen?.Dispose();
+				textBrush?.Dispose();
 			}
 		}
 	}

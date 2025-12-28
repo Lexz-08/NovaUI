@@ -12,9 +12,13 @@ namespace NovaUI.Controls
 	[DefaultEvent("Click")]
 	public class NovaPanel : Panel
 	{
-		private Color _borderColor = Constants.BorderColor;
-		private int _borderWidth = 1;
-		private int _borderRadius = 6;
+		private readonly Pen borderPen = Color.Transparent.ToPen();
+		private readonly Pen backPen = Color.Transparent.ToPen();
+		private readonly SolidBrush backBrush = Color.Transparent.ToBrush();
+
+		private Color borderColor = Constants.BorderColor;
+		private int borderWidth = 1;
+		private int borderRadius = 6;
 
 		/// <summary>
 		/// Occurs when the value of the <see cref="BorderColor"/> property changes.
@@ -34,30 +38,18 @@ namespace NovaUI.Controls
 		[Category("Property"), Description("Occurs when the value of the BorderRadius property changes.")]
 		public event EventHandler BorderRadiusChanged;
 
-		/// <summary>
-		/// Raises the <see cref="BorderColorChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderColorChanged(EventArgs e)
 		{
 			BorderColorChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="BorderWidthChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderWidthChanged(EventArgs e)
 		{
 			BorderWidthChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="BorderRadiusChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderRadiusChanged(EventArgs e)
 		{
 			BorderRadiusChanged?.Invoke(this, e);
@@ -70,8 +62,13 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets the border color of the control.")]
 		public Color BorderColor
 		{
-			get => _borderColor;
-			set { _borderColor = value; OnBorderColorChanged(EventArgs.Empty); }
+			get => borderColor;
+			set
+			{
+				borderColor = value;
+				if (borderPen.Color != value) borderPen.Color = value;
+				OnBorderColorChanged(EventArgs.Empty);
+			}
 		}
 
 		/// <summary>
@@ -80,8 +77,13 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets the border width of the control.")]
 		public int BorderWidth
 		{
-			get => _borderWidth;
-			set { _borderWidth = value; OnBorderWidthChanged(EventArgs.Empty); }
+			get => borderWidth;
+			set
+			{
+				borderWidth = value;
+				if (borderPen.Width != value) borderPen.Width = value;
+				OnBorderWidthChanged(EventArgs.Empty);
+			}
 		}
 
 		/// <summary>
@@ -90,14 +92,8 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets the border radius of the control.")]
 		public int BorderRadius
 		{
-			get => _borderRadius;
-			set
-			{
-				if (value != _borderRadius)
-					Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, value, value));
-				_borderRadius = value;
-				OnBorderRadiusChanged(EventArgs.Empty);
-			}
+			get => borderRadius;
+			set { borderRadius = value; OnBorderRadiusChanged(EventArgs.Empty); }
 		}
 
 		public NovaPanel()
@@ -109,24 +105,25 @@ namespace NovaUI.Controls
 			DoubleBuffered = true;
 
 			Font = new Font("Segoe UI", 9f);
+			borderPen = new Pen(borderColor, borderWidth);
 			BackColor = Constants.PrimaryColor;
 			ForeColor = Constants.TextColor;
 			Size = new Size(250, 200);
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 		}
 
-		protected override void OnResize(EventArgs eventargs)
+		protected override void OnResize(EventArgs e)
 		{
-			base.OnResize(eventargs);
+			base.OnResize(e);
 
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 		}
 
 		protected override void OnSizeChanged(EventArgs e)
 		{
 			base.OnSizeChanged(e);
 
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 		}
 
 		protected override void OnParentBackColorChanged(EventArgs e)
@@ -135,47 +132,64 @@ namespace NovaUI.Controls
 			Invalidate();
 		}
 
+		protected override void OnBackColorChanged(EventArgs e)
+		{
+			base.OnBackColorChanged(e);
+			if (backBrush.Color != BackColor) backBrush.Color = BackColor;
+			Invalidate();
+		}
+
 		protected override void OnPaint(PaintEventArgs e)
 		{
 			base.OnPaint(e);
 
-			e.Graphics.Clear(Parent.BackColor);
+			e.Graphics.Clear(Parent != null ? Parent.BackColor : Color.Transparent);
 
-			if (_borderRadius > 0)
+			if (borderRadius > 0)
 			{
 				e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-				if (_borderWidth > 0)
+				if (borderWidth > 0)
 				{
-					e.Graphics.FillPath(BackColor.ToBrush(),
-						new Rectangle(_borderWidth - 1, _borderWidth - 1, Width - (_borderWidth * 2) + 1, Height - (_borderWidth * 2) + 1)
-						.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0).Roundify(Math.Max(1, _borderRadius - _borderWidth)));
-					for (int i = 0; i < _borderWidth; i++)
-						e.Graphics.DrawPath(new Pen(_borderColor.ToBrush()),
-							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1)
-							.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0).Roundify(_borderRadius - i));
+					e.Graphics.FillPath(backBrush,
+						new Rectangle(borderWidth - 1, borderWidth - 1, Width - (borderWidth * 2) + 1, Height - (borderWidth * 2) + 1)
+						.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0).Round(Math.Max(1, borderRadius - borderWidth)));
+					e.Graphics.DrawPath(borderPen,
+						new RectangleF(borderWidth / 2f - 0.5f, borderWidth / 2f - 0.5f, Width - borderWidth, Height - borderWidth)
+						.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0).Round(borderRadius));
 				}
 				else
 				{
-					e.Graphics.FillPath(BackColor.ToBrush(),
-						new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
-					e.Graphics.DrawPath(new Pen(BackColor.ToBrush()),
-						new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
+					e.Graphics.FillPath(backBrush,
+						new RectangleF(0.5f, 0.5f, Width - 2, Height - 2)
+						.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0).Round(borderRadius));
+					e.Graphics.DrawPath(backPen,
+						new RectangleF(0.5f, 0.5f, Width - 2, Height - 2)
+						.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0).Round(borderRadius));
 				}
 			}
 			else
 			{
-				if (_borderWidth > 0)
+				if (borderWidth > 0)
 				{
-					e.Graphics.FillRectangle(BackColor.ToBrush(),
-						new Rectangle(_borderWidth, _borderWidth, Width - (_borderWidth * 2), Height - (_borderWidth * 2))
+					e.Graphics.FillRectangle(backBrush,
+						new Rectangle(borderWidth, borderWidth, Width - (borderWidth * 2), Height - (borderWidth * 2))
 						.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0));
-					for (int i = 0; i < _borderWidth; i++)
-						e.Graphics.DrawRectangle(new Pen(_borderColor.ToBrush()),
-							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1)
-							.Rescale(DesignMode ? 2 : 0, DesignMode ? -4 : 0));
+					e.Graphics.DrawRectangle(borderPen,
+						borderWidth / 2f + (DesignMode ? 2 : 0), borderWidth / 2f + (DesignMode ? 2 : 0), Width - borderWidth - (DesignMode ? 4 : 0), Height - borderWidth - (DesignMode ? 4 : 0));
 				}
-				else e.Graphics.FillRectangle(BackColor.ToBrush(),
-						new Rectangle(0, 0, Width, Height));
+				else e.Graphics.FillRectangle(backBrush, new Rectangle(0, 0, Width, Height));
+			}
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			base.Dispose(disposing);
+
+			if (disposing)
+			{
+				borderPen?.Dispose();
+				backPen?.Dispose();
+				backBrush?.Dispose();
 			}
 		}
 	}

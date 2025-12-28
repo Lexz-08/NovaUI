@@ -12,12 +12,17 @@ namespace NovaUI.Controls
 	[DefaultEvent("Click")]
 	public class NovaGroupBox : GroupBox
 	{
-		private Color _borderColor = Constants.BorderColor;
-		private int _borderWidth = 1;
-		private int _borderRadius = 6;
+		private readonly Pen borderPen = Color.Transparent.ToPen();
+		private readonly Pen backPen = Color.Transparent.ToPen();
+		private readonly SolidBrush backBrush = Color.Transparent.ToBrush();
+		private readonly SolidBrush textBrush = Color.Transparent.ToBrush();
+
+		private Color borderColor = Constants.BorderColor;
+		private int borderWidth = 1;
+		private int borderRadius = 6;
 
 		/// <summary>
-		/// Occurs when the value of the <see cref="BorderColor"/> property changes.
+		/// Occurs when the value of the <see cref="BorderColor"> property changes.
 		/// </summary>
 		[Category("Property"), Description("Occurs when the value of the BorderColor property changes.")]
 		public event EventHandler BorderColorChanged;
@@ -29,73 +34,65 @@ namespace NovaUI.Controls
 		public event EventHandler BorderWidthChanged;
 
 		/// <summary>
-		/// Occurs when the vlaue of the <see cref="BorderRadius"/> propert changes.
+		/// Occurs when the value of the <see cref="BorderRadius"/> property changes.
 		/// </summary>
 		[Category("Property"), Description("Occurs when the value of the BorderRadius property changes.")]
 		public event EventHandler BorderRadiusChanged;
 
-		/// <summary>
-		/// Raises the <see cref="BorderColorChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderColorChanged(EventArgs e)
 		{
 			BorderColorChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="BorderWidthChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderWidthChanged(EventArgs e)
 		{
 			BorderWidthChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="BorderRadiusChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderRadiusChanged(EventArgs e)
 		{
 			BorderRadiusChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Gets or sets the border color of the control.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets the border color of the control.")]
 		public Color BorderColor
 		{
-			get => _borderColor;
-			set { _borderColor = value; OnBorderColorChanged(EventArgs.Empty); }
+			get => borderColor;
+			set
+			{
+				borderColor = value;
+				if (borderPen.Color != value) borderPen.Color = value;
+				OnBorderColorChanged(EventArgs.Empty);
+			}
 		}
 
-		/// <summary>
-		/// Gets or sets the border width of the control.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets the border width of the control.")]
 		public int BorderWidth
 		{
-			get => _borderWidth;
-			set { _borderWidth = value; OnBorderWidthChanged(EventArgs.Empty); }
+			get => borderWidth;
+			set
+			{
+				borderWidth = value;
+				if (borderPen.Width != value) borderPen.Width = value;
+				OnBorderWidthChanged(EventArgs.Empty);
+			}
 		}
 
-		/// <summary>
-		/// Gets or sets the border radius of the control.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets the border radius of the control.")]
 		public int BorderRadius
 		{
-			get => _borderRadius;
+			get => borderRadius;
 			set
 			{
-				if (value != _borderRadius)
+				if (value != borderRadius)
 					Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, value, value));
-				_borderRadius = value;
+				borderRadius = value;
 				OnBorderRadiusChanged(EventArgs.Empty);
 			}
 		}
@@ -109,24 +106,25 @@ namespace NovaUI.Controls
 			DoubleBuffered = true;
 
 			Font = new Font("Segoe UI", 9f);
+			borderPen = new Pen(borderColor, borderWidth);
 			BackColor = Constants.PrimaryColor;
 			ForeColor = Constants.TextColor;
 			Size = new Size(250, 200);
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 		}
 
 		protected override void OnResize(EventArgs e)
 		{
 			base.OnResize(e);
 
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 		}
 
 		protected override void OnSizeChanged(EventArgs e)
 		{
 			base.OnSizeChanged(e);
 
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 		}
 
 		protected override void OnParentBackColorChanged(EventArgs e)
@@ -135,65 +133,78 @@ namespace NovaUI.Controls
 			Invalidate();
 		}
 
+		protected override void OnBackColorChanged(EventArgs e)
+		{
+			base.OnBackColorChanged(e);
+			if (backBrush.Color != BackColor)
+			{
+				backBrush.Color = BackColor;
+				backPen.Color = BackColor;
+			}
+			Invalidate();
+		}
+
+		protected override void OnForeColorChanged(EventArgs e)
+		{
+			base.OnForeColorChanged(e);
+			if (textBrush.Color != ForeColor) textBrush.Color = ForeColor;
+			Invalidate();
+		}
+
 		protected override void OnPaint(PaintEventArgs e)
 		{
 			base.OnPaint(e);
 
-			e.Graphics.Clear(Parent.BackColor);
+			e.Graphics.Clear(Parent != null ? Parent.BackColor : Color.Transparent);
 
 			e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
-			//if (_borderRadius > 0)
-			//{
-			//	e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-
-			//	if (_borderWidth > 0) e.Graphics.FillPath(_borderColor.ToBrush(), new Rectangle(0, Font.Height + 8, Width - 1, Height - Font.Height - 9).Roundify(_borderRadius));
-			//	e.Graphics.FillPath(BackColor.ToBrush(),
-			//		new Rectangle(_borderWidth + 1, Font.Height + _borderWidth + 9, Width - (_borderWidth * 2) - 3, Height - Font.Height - (_borderWidth * 2) - 11).Roundify(_borderRadius > 1 ? _borderRadius - 1 : _borderRadius));
-			//}
-			//else
-			//{
-			//	e.Graphics.FillRectangle(_borderColor.ToBrush(), 0, Font.Height + 8, Width, Height - Font.Height - 8);
-			//	e.Graphics.FillRectangle(BackColor.ToBrush(),
-			//		_borderWidth, Font.Height + 8 + _borderWidth, Width - (_borderWidth * 2), Height - (_borderWidth * 2) - Font.Height - 8);
-			//}
-
-			if (_borderRadius > 0)
+			if (borderRadius > 0)
 			{
 				e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-				if (_borderWidth > 0)
+				if (borderWidth > 0)
 				{
-					e.Graphics.FillPath(BackColor.ToBrush(),
-						new Rectangle(_borderWidth - 1, Font.Height + _borderWidth + 7, Width - (_borderWidth * 2) + 1, Height - Font.Height - (_borderWidth * 2) - 7).Roundify(Math.Max(1, _borderRadius - _borderWidth)));
-					for (int i = 0; i < _borderWidth; i++)
-						e.Graphics.DrawPath(new Pen(_borderColor.ToBrush()),
-							new Rectangle(i, Font.Height + i + 8, Width - (i * 2) - 1, Height - Font.Height - (i * 2) - 9).Roundify(_borderRadius - i));
+					e.Graphics.FillPath(backBrush,
+						new Rectangle(borderWidth - 1, Font.Height + borderWidth + 7, Width - (borderWidth * 2) + 1, Height - Font.Height - (borderWidth * 2) - 7).Round(Math.Max(1, borderRadius - borderWidth)));
+					e.Graphics.DrawPath(borderPen,
+						new RectangleF(borderWidth / 2f - 0.5f, Font.Height + borderWidth / 2f + 8 - 0.5f, Width - borderWidth, Height - Font.Height - borderWidth - 8).Round(borderRadius));
 				}
 				else
 				{
-					e.Graphics.FillPath(BackColor.ToBrush(),
-						new Rectangle(0, Font.Height + 8, Width - 1, Height - Font.Height - 9).Roundify(_borderRadius));
-					e.Graphics.DrawPath(new Pen(BackColor.ToBrush()),
-						new Rectangle(0, Font.Height + 8, Width - 1, Height - Font.Height - 9).Roundify(_borderRadius));
+					e.Graphics.FillPath(backBrush,
+						new Rectangle(0, Font.Height + 8, Width - 1, Height - Font.Height - 9).Round(borderRadius));
+					e.Graphics.DrawPath(backPen,
+						new Rectangle(0, Font.Height + 8, Width - 1, Height - Font.Height - 9).Round(borderRadius));
 				}
 			}
 			else
 			{
-				if (_borderWidth > 0)
+				if (borderWidth > 0)
 				{
-					e.Graphics.FillRectangle(BackColor.ToBrush(),
-						new Rectangle(_borderWidth, Font.Height + _borderWidth + 8, Width - (_borderWidth * 2), Height - Font.Height - (_borderWidth * 2) - 8));
-					for (int i = 0; i < _borderWidth; i++)
-						e.Graphics.DrawRectangle(new Pen(_borderColor.ToBrush()),
-							new Rectangle(i, Font.Height + i + 8, Width - (i * 2) - 1, Height - Font.Height - (i * 2) - 9));
+					e.Graphics.FillRectangle(backBrush,
+						new Rectangle(borderWidth, Font.Height + borderWidth + 8, Width - (borderWidth * 2), Height - Font.Height - (borderWidth * 2) - 8));
+					e.Graphics.DrawRectangle(borderPen,
+						borderWidth / 2f, borderWidth / 2f + Font.Height + 8, Width - borderWidth, Height - Font.Height - borderWidth - 8);
 				}
-				else e.Graphics.FillRectangle(BackColor.ToBrush(),
-						new Rectangle(0, Font.Height + 8, Width, Height - Font.Height - 8));
+				else e.Graphics.FillRectangle(backBrush,
+					new Rectangle(0, Font.Height + 8, Width, Height - Font.Height - 8));
 			}
 
-			e.Graphics.DrawString(Text, Font, ForeColor.ToBrush(),
-				new PointF(3, 2),
-				new StringFormat { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Near });
+			e.Graphics.DrawString(Text, Font, textBrush,
+				new PointF(3, 2), new StringFormat { Alignment = StringAlignment.Near, LineAlignment = StringAlignment.Near });
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			base.Dispose(disposing);
+
+			if (disposing)
+			{
+				borderPen?.Dispose();
+				backPen?.Dispose();
+				backBrush?.Dispose();
+				textBrush?.Dispose();
+			}
 		}
 	}
 }

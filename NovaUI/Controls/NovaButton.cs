@@ -12,74 +12,71 @@ namespace NovaUI.Controls
 	[DefaultEvent("Click")]
 	public class NovaButton : Button
 	{
-		private Color _borderColor = Constants.BorderColor;
-		private Color _activeColor = Constants.AccentColor;
-		private int _borderWidth = 1;
-		private int _borderRadius = 6;
-		private bool _useUserSchemeCursor = true;
-		private Cursor _originalCrsr = Cursors.Hand;
+		private readonly Pen borderNormalPen = Color.Transparent.ToPen();
+		private readonly Pen borderDownPen = Color.Transparent.ToPen();
+		private readonly SolidBrush backNormalBrush = Color.Transparent.ToBrush();
+		private readonly SolidBrush backHoverBrush = Color.Transparent.ToBrush();
+		private readonly SolidBrush backDownBrush = Color.Transparent.ToBrush();
+		private readonly SolidBrush noBorderNormalBrush = Color.Transparent.ToBrush();
+		private readonly SolidBrush noBorderHoverBrush = Color.Transparent.ToBrush();
+		private readonly SolidBrush noBorderDownBrush = Color.Transparent.ToBrush();
+		private readonly Pen noBorderNormalPen = Color.Transparent.ToPen();
+		private readonly Pen noBorderHoverPen = Color.Transparent.ToPen();
+		private readonly Pen noBorderDownPen = Color.Transparent.ToPen();
+		private readonly SolidBrush textBrush = Color.Transparent.ToBrush();
 
-		private bool _mouseHover = false;
-		private bool _mouseDown = false;
+		private Color borderColor = Constants.BorderColor;
+		private Color activeColor = Constants.AccentColor;
+		private int borderWidth = 1;
+		private int borderRadius = 6;
+		private bool useUserSchemeCursor = true;
+		private Cursor originalCursor = Cursors.Hand;
+
+		private bool mouseHover = false;
+		private bool mouseDown = false;
 
 		/// <summary>
 		/// Occurs when the value of the <see cref="BorderColor"/> property changes.
 		/// </summary>
-		[Category("Property"), Description("Occurs when the value of the BorderColor property changes.")]
+		[Category("Appearance"), Description("Occurs when the value of the BorderColor property changes.")]
 		public event EventHandler BorderColorChanged;
 
 		/// <summary>
 		/// Occurs when the value of the <see cref="ActiveColor"/> property changes.
 		/// </summary>
-		[Category("Property"), Description("Occurs when the value of the ActiveColor property changes.")]
+		[Category("Appearance"), Description("Occurs when the value of the ActiveColor property changes.")]
 		public event EventHandler ActiveColorChanged;
 
 		/// <summary>
 		/// Occurs when the value of the <see cref="BorderWidth"/> property changes.
 		/// </summary>
-		[Category("Property"), Description("Occurs when the value of the BorderWidth property changes.")]
+		[Category("Appearance"), Description("Occurs when the value of the BorderWidth property changes.")]
 		public event EventHandler BorderWidthChanged;
 
 		/// <summary>
 		/// Occurs when the value of the <see cref="BorderRadius"/> property changes.
 		/// </summary>
-		[Category("Property"), Description("Occurs when the value of the BorderRadius property changes.")]
+		[Category("Appearance"), Description("Occurs when the value of the BorderRadius property changes.")]
 		public event EventHandler BorderRadiusChanged;
 
-		/// <summary>
-		/// Raises the <see cref="BorderColorChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderColorChanged(EventArgs e)
 		{
 			BorderColorChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="ActiveColorChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnActiveColorChanged(EventArgs e)
 		{
 			ActiveColorChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="BorderWidthChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderWidthChanged(EventArgs e)
 		{
 			BorderWidthChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="BorderRadiusChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderRadiusChanged(EventArgs e)
 		{
 			BorderRadiusChanged?.Invoke(this, e);
@@ -92,8 +89,13 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets the border color of the control.")]
 		public Color BorderColor
 		{
-			get => _borderColor;
-			set { _borderColor = value; OnBorderColorChanged(EventArgs.Empty); }
+			get => borderColor;
+			set
+			{
+				borderColor = value;
+				if (borderNormalPen.Color != value) borderNormalPen.Color = value;
+				OnBorderColorChanged(EventArgs.Empty);
+			}
 		}
 
 		/// <summary>
@@ -102,8 +104,18 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets the border color of the control when selected.")]
 		public Color ActiveColor
 		{
-			get => _activeColor;
-			set { _activeColor = value; OnActiveColorChanged(EventArgs.Empty); }
+			get => activeColor;
+			set
+			{
+				activeColor = value;
+				if (borderDownPen.Color != value)
+				{
+					borderDownPen.Color = value;
+					noBorderDownBrush.Color = value;
+					noBorderDownPen.Color = value;
+				}
+				OnActiveColorChanged(EventArgs.Empty);
+			}
 		}
 
 		/// <summary>
@@ -112,11 +124,16 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets the border width of the control.")]
 		public int BorderWidth
 		{
-			get => _borderWidth;
+			get => borderWidth;
 			set
 			{
 				if (value < 0) value = 0;
-				_borderWidth = value;
+				borderWidth = value;
+				if (borderNormalPen.Width != value)
+				{
+					borderNormalPen.Width = value;
+					borderDownPen.Width = value;
+				}
 				OnBorderWidthChanged(EventArgs.Empty);
 			}
 		}
@@ -127,15 +144,15 @@ namespace NovaUI.Controls
 		[Category("Appearance"), Description("Gets or sets the border radius of the control.")]
 		public int BorderRadius
 		{
-			get => _borderRadius;
+			get => borderRadius;
 			set
 			{
 				if (value < 0) value = 0;
 				else if (value > Math.Min(Width, Height) / 2)
 					value = Math.Min(Width, Height) / 2;
-				if (value != _borderRadius)
+				if (value != borderRadius)
 					Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, value, value));
-				_borderRadius = value;
+				borderRadius = value;
 				OnBorderRadiusChanged(EventArgs.Empty);
 			}
 		}
@@ -146,16 +163,13 @@ namespace NovaUI.Controls
 		[Category("Behavior"), Description("Gets or sets a value indicating whether the control will use the user-selected system scheme cursor.")]
 		public bool UseUserSchemeCursor
 		{
-			get => _useUserSchemeCursor;
-			set { _useUserSchemeCursor = value; Invalidate(); }
+			get => useUserSchemeCursor;
+			set { useUserSchemeCursor = value; Invalidate(); }
 		}
 
 		/// <summary>
 		/// Gets or sets the cursor that is displayed when the mouse pointer is over the control.
 		/// </summary>
-		/// <returns>
-		/// A <see cref="Cursor"/> that represents the cursor to display when the mouse pointer is over the control.
-		/// </returns>
 		[Category("Appearance"), Description("Gets or sets the cursor that is displayed when the mouse pointer is over the control.")]
 		public override Cursor Cursor
 		{
@@ -163,7 +177,7 @@ namespace NovaUI.Controls
 			set
 			{
 				base.Cursor = value;
-				if (!_useUserSchemeCursor) _originalCrsr = value;
+				if (!useUserSchemeCursor) originalCursor = value;
 
 				OnCursorChanged(EventArgs.Empty);
 				Invalidate();
@@ -179,33 +193,37 @@ namespace NovaUI.Controls
 			DoubleBuffered = true;
 
 			Font = new Font("Segoe UI", 9f);
+			borderNormalPen = new Pen(borderColor);
+			borderDownPen = new Pen(activeColor);
+			noBorderDownBrush = activeColor.ToBrush();
+			noBorderDownPen = new Pen(activeColor);
 			BackColor = Constants.PrimaryColor;
 			ForeColor = Constants.TextColor;
 			Size = new Size(100, 30);
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 		}
 
 		protected override void OnResize(EventArgs e)
 		{
 			base.OnResize(e);
 
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 		}
 
 		protected override void OnSizeChanged(EventArgs e)
 		{
 			base.OnSizeChanged(e);
 
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 		}
 
 		protected override void OnMouseEnter(EventArgs e)
 		{
 			base.OnMouseEnter(e);
 
-			_mouseHover = true;
-			if (_useUserSchemeCursor) Cursor = Win32.RegCursor("Hand");
-			else Cursor = _originalCrsr;
+			mouseHover = true;
+			if (useUserSchemeCursor) Win32.GetRegistryCursor(Win32.RegistryCursor.Hand, this);
+			else Cursor = originalCursor;
 			Invalidate();
 		}
 
@@ -213,7 +231,7 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseLeave(e);
 
-			_mouseHover = false;
+			mouseHover = false;
 			Invalidate();
 		}
 
@@ -221,7 +239,7 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseDown(e);
 
-			_mouseDown = true;
+			mouseDown = true;
 			Invalidate();
 		}
 
@@ -229,7 +247,7 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseUp(e);
 
-			_mouseDown = false;
+			mouseDown = false;
 			Invalidate();
 		}
 
@@ -239,49 +257,93 @@ namespace NovaUI.Controls
 			Invalidate();
 		}
 
+		protected override void OnBackColorChanged(EventArgs e)
+		{
+			base.OnBackColorChanged(e);
+			if (backNormalBrush.Color != BackColor)
+			{
+				backNormalBrush.Color = BackColor;
+				backHoverBrush.Color = BackColor.Lighter(0.1f);
+				backDownBrush.Color = BackColor.Lighter(0.1f).Darker(0.1f);
+				noBorderNormalBrush.Color = BackColor;
+				noBorderHoverBrush.Color = BackColor.Lighter(0.1f);
+				noBorderDownBrush.Color = BackColor.Lighter(0.1f).Darker(0.1f);
+				noBorderNormalPen.Color = BackColor;
+				noBorderHoverPen.Color = BackColor.Lighter(0.1f);
+			}
+			Invalidate();
+		}
+
+		protected override void OnForeColorChanged(EventArgs e)
+		{
+			base.OnForeColorChanged(e);
+			if (textBrush.Color != ForeColor) textBrush.Color = ForeColor;
+			Invalidate();
+		}
+
 		protected override void OnPaint(PaintEventArgs e)
 		{
 			base.OnPaint(e);
 
-			e.Graphics.Clear(Parent.BackColor);
+			e.Graphics.Clear(Parent != null ? Parent.BackColor : Color.Transparent);
 
 			e.Graphics.TextRenderingHint = System.Drawing.Text.TextRenderingHint.ClearTypeGridFit;
 
-			if (_borderRadius > 0)
+			if (borderRadius > 0)
 			{
 				e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-				if (_borderWidth > 0)
+				if (borderWidth > 0)
 				{
-					e.Graphics.FillPath((_mouseHover ? BackColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : BackColor).ToBrush(),
-						new Rectangle(_borderWidth - 1, _borderWidth - 1, Width - (_borderWidth * 2) + 1, Height - (_borderWidth * 2) + 1).Roundify(Math.Max(1, _borderRadius - _borderWidth)));
-					for (int i = 0; i < _borderWidth; i++)
-						e.Graphics.DrawPath(new Pen((_mouseDown ? _activeColor : _borderColor).ToBrush()),
-							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1).Roundify(_borderRadius - i));
+					e.Graphics.FillPath(mouseHover ? (mouseDown ? backDownBrush : backHoverBrush) : backNormalBrush,
+						new Rectangle(borderWidth - 1, borderWidth - 1, Width - (borderWidth * 2) + 1, Height - (borderWidth * 2) + 1)
+						.Round(Math.Max(1, borderRadius - borderWidth)));
+					e.Graphics.DrawPath(mouseDown ? borderDownPen : borderNormalPen,
+						new RectangleF(borderWidth / 2f - 0.5f, borderWidth / 2f - 0.5f, Width - borderWidth, Height - borderWidth)
+						.Round(borderRadius));
 				}
 				else
 				{
-					e.Graphics.FillPath((_mouseHover ? (_mouseDown ? _activeColor : BackColor.Lighter(0.1f)) : BackColor).ToBrush(),
-						new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
-					e.Graphics.DrawPath(new Pen((_mouseHover ? (_mouseDown ? _activeColor : BackColor.Lighter(0.1f)) : BackColor).ToBrush()),
-						new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
+					e.Graphics.FillPath(mouseHover ? (mouseDown ? noBorderDownBrush : noBorderHoverBrush) : noBorderNormalBrush,
+						new Rectangle(0, 0, Width - 1, Height - 2).Round(borderRadius));
+					e.Graphics.DrawPath(mouseHover ? (mouseDown ? noBorderDownPen : noBorderHoverPen) : noBorderNormalPen,
+						new Rectangle(0, 0, Width - 1, Height - 2).Round(borderRadius));
 				}
 			}
 			else
 			{
-				if (_borderWidth > 0)
+				if (borderWidth > 0)
 				{
-					e.Graphics.FillRectangle((_mouseHover ? BackColor.Lighter(0.1f).Darker(_mouseDown ? 0.1f : 0) : BackColor).ToBrush(),
-						new Rectangle(_borderWidth, _borderWidth, Width - (_borderWidth * 2), Height - (_borderWidth * 2)));
-					for (int i = 0; i < _borderWidth; i++)
-						e.Graphics.DrawRectangle(new Pen((_mouseDown ? _activeColor : _borderColor).ToBrush()),
-							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1));
+					e.Graphics.FillRectangle(mouseHover ? (mouseDown ? backDownBrush : backHoverBrush) : backNormalBrush,
+						new Rectangle(borderWidth, borderWidth, Width - (borderWidth * 2), Height - (borderWidth * 2)));
+					e.Graphics.DrawRectangle(mouseDown ? borderDownPen : borderNormalPen,
+						borderWidth / 2f, borderWidth / 2f, Width - borderWidth, Height - borderWidth);
 				}
-				else e.Graphics.FillRectangle((_mouseHover ? (_mouseDown ? _activeColor : BackColor.Lighter(0.1f)) : BackColor).ToBrush(),
-						new Rectangle(0, 0, Width, Height));
+				else e.Graphics.FillRectangle(mouseHover ? (mouseDown ? noBorderDownBrush : noBorderHoverBrush) : noBorderNormalBrush,
+					new Rectangle(0, 0, Width, Height));
 			}
 
-			e.Graphics.DrawString(Text, Font, ForeColor.ToBrush(),
+			e.Graphics.DrawString(Text, Font, textBrush,
 				new Rectangle(0, 0, Width, Height), Constants.CenterAlign);
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			base.Dispose(disposing);
+
+			if (disposing)
+			{
+				borderNormalPen?.Dispose();
+				borderDownPen?.Dispose();
+				backNormalBrush?.Dispose();
+				backHoverBrush?.Dispose();
+				backDownBrush?.Dispose();
+				noBorderNormalBrush?.Dispose();
+				noBorderHoverBrush?.Dispose();
+				noBorderDownBrush?.Dispose();
+				noBorderNormalPen?.Dispose();
+				noBorderHoverPen?.Dispose();
+				noBorderDownPen?.Dispose();
+			}
 		}
 	}
 }

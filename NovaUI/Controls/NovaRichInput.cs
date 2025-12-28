@@ -13,22 +13,28 @@ namespace NovaUI.Controls
 	[DefaultEvent("TextChanged")]
 	public class NovaRichInput : Control
 	{
-		private Color _borderColor = Constants.BorderColor;
-		private Color _activeColor = Constants.AccentColor;
-		private int _borderWidth = 1;
-		private int _borderRadius = 6;
-		private bool _underlineBorder = false;
-		private bool _useUserSchemeCursor = true;
-		private bool _readOnly = false;
-		private int _maxLen = int.MaxValue;
-		private RichTextBoxScrollBars _scrollBars = RichTextBoxScrollBars.Both;
-		private Cursor _originalCrsr = Cursors.IBeam;
+		private readonly Pen borderFocusedPen = Color.Transparent.ToPen();
+		private readonly Pen borderHoverPen = Color.Transparent.ToPen();
+		private readonly Pen borderNormalPen = Color.Transparent.ToPen();
+		private readonly SolidBrush backBrush = Color.Transparent.ToBrush();
+		private readonly Pen backPen = Color.Transparent.ToPen();
 
-		private RichTextBox _input = new RichTextBox();
-		private bool _mouseHover = false;
-		private Stopwatch _delay = new Stopwatch();
-		private Timer _delayTracker = new Timer { Interval = 1 };
-		private bool _canDelay = true;
+		private Color borderColor = Constants.BorderColor;
+		private Color activeColor = Constants.AccentColor;
+		private int borderWidth = 1;
+		private int borderRadius = 6;
+		private bool underlineBorder = false;
+		private bool useUserSchemeCursor = true;
+		private bool readOnly = false;
+		private int maxLength = int.MaxValue;
+		private RichTextBoxScrollBars scrollBars = RichTextBoxScrollBars.Both;
+		private Cursor originalCursor = Cursors.IBeam;
+
+		private readonly RichTextBox input = new RichTextBox();
+		private bool mouseHover = false;
+		private readonly Stopwatch delay = new Stopwatch();
+		private readonly Timer delayTracker = new Timer() { Interval = 1 };
+		private bool canDelay = true;
 
 		/// <summary>
 		/// Occurs when the value of the <see cref="BorderColor"/> property changes.
@@ -66,480 +72,304 @@ namespace NovaUI.Controls
 		[Category("Behavior"), Description("Occurs when the user stops input.")]
 		public event EventHandler InputEnded;
 
-		/// <summary>
-		/// Raises the <see cref="BorderColorChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderColorChanged(EventArgs e)
 		{
 			BorderColorChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="ActiveColorChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnActiveColorChanged(EventArgs e)
 		{
 			ActiveColorChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="BorderWidthChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderWidthChanged(EventArgs e)
 		{
 			BorderWidthChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="BorderRadiusChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderRadiusChanged(EventArgs e)
 		{
 			BorderRadiusChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="InputStarted"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnInputStarted(EventArgs e)
 		{
 			InputStarted?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="InputEnded"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnInputEnded(EventArgs e)
 		{
 			InputEnded?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Gets or sets the border color of the control.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets the border color of the control.")]
 		public Color BorderColor
 		{
-			get => _borderColor;
-			set { _borderColor = value; OnBorderColorChanged(EventArgs.Empty); }
+			get => borderColor;
+			set
+			{
+				borderColor = value;
+				if (borderNormalPen.Color != value)
+				{
+					borderNormalPen.Color = value;
+					borderHoverPen.Color = value.Lighter(0.1f);
+				}
+				OnBorderColorChanged(EventArgs.Empty);
+			}
 		}
 
-		/// <summary>
-		/// Gets or sets the border color of the control when it is selected.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets the border color of the control when it is selected.")]
 		public Color ActiveColor
 		{
-			get => _activeColor;
-			set { _activeColor = value; OnActiveColorChanged(EventArgs.Empty); }
+			get => activeColor;
+			set
+			{
+				activeColor = value;
+				if (borderFocusedPen.Color != value) borderFocusedPen.Color = value;
+				OnActiveColorChanged(EventArgs.Empty);
+			}
 		}
 
-		/// <summary>
-		/// Gets or sets the border width of the control.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets the border width of the control.")]
 		public int BorderWidth
 		{
-			get => _borderWidth;
+			get => borderWidth;
 			set
 			{
-				_borderWidth = Math.Max(1, value);
+				borderWidth = Math.Max(1, value);
+				if (borderNormalPen.Width != value)
+				{
+					borderNormalPen.Width = value;
+					borderHoverPen.Width = value;
+					borderFocusedPen.Width = value;
+				}
 				UpdateInputBounds();
 				OnBorderWidthChanged(EventArgs.Empty);
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets the border radius of the control.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets the border radius of the control.")]
 		public int BorderRadius
 		{
-			get => _borderRadius;
+			get => borderRadius;
 			set
 			{
 				if (value < 0) value = 0;
 				else if (value > Math.Min(Width, Height) / 2)
 					value = Math.Min(Width, Height) / 2;
-				if (value != _borderRadius)
+				if (value != borderRadius)
 					Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, value, value));
-				_borderRadius = value;
+				borderRadius = value;
 				UpdateInputBounds();
 				OnBorderRadiusChanged(EventArgs.Empty);
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets a value indicating whether the control will display a line under the input area of the control or a full border.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets a value indicating whether the control will display a line under the input area of the control or a full border.")]
 		public bool UnderlineBorder
 		{
-			get => _underlineBorder;
-			set { _underlineBorder = value; Invalidate(); }
+			get => underlineBorder;
+			set { underlineBorder = value; Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets a value indicating whether the control will use the user-selected system scheme cursor.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Behavior"), Description("Gets or sets a value indicating whether the control will use the user-selected system scheme cursor.")]
 		public bool UseUserSchemeCursor
 		{
-			get => _useUserSchemeCursor;
-			set { _useUserSchemeCursor = value; Invalidate(); }
+			get => useUserSchemeCursor;
+			set { useUserSchemeCursor = value; Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the text associated with this control.
-		/// </summary>
-		/// <returns>
-		/// The text associated with this control.
-		/// </returns>
 		[Category("Appearance"), Description("Gets or sets the text associated with this control.")]
 		public override string Text
 		{
 			get => base.Text;
-			set { base.Text = value; _input.Text = value; OnTextChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
+			set
+			{
+				base.Text = value;
+				input.Text = value;
+				OnTextChanged(EventArgs.Empty);
+				input.Invalidate();
+				Invalidate();
+			}
 		}
 
-		/// <summary>
-		/// Gets or sets a value indicating whether text in the control is read-only.
-		/// </summary>
-		/// <returns>
-		/// <see langword="true"/> if the control is read-only; otherwise <see langword="false"/>. The default is <see langword="false"/>.
-		/// </returns>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Behavior"), Description("Gets or sets a value indicating whether text in the control is read-only.")]
 		public bool ReadOnly
 		{
-			get
-			{
-				_readOnly = _input.ReadOnly;
-				return _readOnly;
-			}
-			set { _readOnly = value; _input.ReadOnly = value; _input.Invalidate(); Invalidate(); }
+			get => readOnly = input.ReadOnly;
+			set { readOnly = value; input.ReadOnly = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the maximum number of characters the user can type or paste into the control.
-		/// </summary>
-		/// <returns>
-		/// The number of characters that can be entered into the control. The default is <see cref="int.MaxValue"/>.
-		/// </returns>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Behavior"), Description("Gets or sets the maximum number of characters the user can type or paste into the control.")]
 		public int MaxLength
 		{
-			get
-			{
-				_maxLen = _input.MaxLength;
-				return _maxLen;
-			}
-			set { _maxLen = value; _input.MaxLength = value; _input.Invalidate(); Invalidate(); }
+			get => maxLength = input.MaxLength;
+			set { maxLength = value; input.MaxLength = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the text of the control, including all rich text format (RTF) codes.
-		/// </summary>
-		/// <returns>
-		/// The text of the control if RTF format.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
 		public string Rtf
 		{
-			get => _input.Rtf;
-			set { _input.Rtf = value; OnTextChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
+			get => input.Rtf ?? string.Empty;
+			set { input.Rtf = value; OnTextChanged(EventArgs.Empty); input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the type of scroll bars to display in the control.
-		/// </summary>
-		/// <returns>
-		/// One of the <see cref="RichTextBoxScrollBars"/> values. The default is <see cref="RichTextBoxScrollBars.Both"/>.
-		/// </returns>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets the type of scroll bars to display in the control.")]
 		public RichTextBoxScrollBars ScrollBars
 		{
-			get
-			{
-				_scrollBars = _input.ScrollBars;
-				return _scrollBars;
-			}
-			set { _scrollBars = value; _input.ScrollBars = value; _input.Invalidate(); Invalidate(); }
+			get => scrollBars = input.ScrollBars;
+			set { scrollBars = value; input.ScrollBars = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the currently selected rich text format (RTF) formatted text in the control.
-		/// </summary>
-		/// <returns>
-		/// The selected RTF text in the control.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
 		public string SelectedRtf
 		{
-			get => _input.SelectedRtf;
-			set { _input.SelectedRtf = value; _input.Invalidate(); Invalidate(); }
+			get => input.SelectedRtf;
+			set { input.SelectedRtf = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the alignment to apply to the current selection or insertion point.
-		/// </summary>
-		/// <returns>
-		/// One of the <see cref="HorizontalAlignment"/> values.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
 		public HorizontalAlignment SelectionAlignment
 		{
-			get => _input.SelectionAlignment;
-			set { _input.SelectionAlignment = value; _input.Invalidate(); Invalidate(); }
+			get => input.SelectionAlignment;
+			set { input.SelectionAlignment = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the starting point of text selected in the control.
-		/// </summary>
-		/// <returns>
-		/// The starting point of text selected in the control.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
 		public int SelectionStart
 		{
-			get => _input.SelectionStart;
-			set { _input.SelectionStart = value; _input.Invalidate(); Invalidate(); }
+			get => input.SelectionStart;
+			set { input.SelectionStart = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the color of the text when the text is selected in a control.
-		/// </summary>
-		/// <returns>
-		/// A <see cref="Color"/> that represents the text color when the text is selected. The default is the value of the <see cref="Control.DefaultBackColor"/> property.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
 		public Color SelectionBackColor
 		{
-			get => _input.SelectionBackColor;
-			set { _input.SelectionBackColor = value; _input.Invalidate(); Invalidate(); }
+			get => input.SelectionBackColor;
+			set { input.SelectionBackColor = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets whether text in the control appears on the baseline, as a superscript, or as a subscript below the baseline.
-		/// </summary>
-		/// <returns>
-		/// A number that specifies the character offset.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
 		public int SelectionCharOffset
 		{
-			get => _input.SelectionCharOffset;
-			set { _input.SelectionCharOffset = value; _input.Invalidate(); Invalidate(); }
+			get => input.SelectionCharOffset;
+			set { input.SelectionCharOffset = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the text color of the current text selection or insertion point.
-		/// </summary>
-		/// <returns>
-		/// A <see cref="Color"/> that represents the color to apply to the current text selection or to text entered after the insertion point.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
 		public Color SelectionColor
 		{
-			get => _input.SelectionColor;
-			set { _input.SelectionColor = value; _input.Invalidate(); Invalidate(); }
+			get => input.SelectionColor;
+			set { input.SelectionColor = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the font of the current text selection or insertion point.
-		/// </summary>
-		/// <returns>
-		/// A <see cref="Font"/> the represents the font to apply to the current text selection or to text entered after the insertion point.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
 		public Font SelectionFont
 		{
-			get => _input.SelectionFont;
-			set { _input.SelectionFont = value; _input.Invalidate(); Invalidate(); }
+			get => input.SelectionFont ?? Font;
+			set { input.SelectionFont = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the distance between the left edge of the first line of text in the selected paragraph and the left edge of subsequent lines in the same paragraph.
-		/// </summary>
-		/// <returns>
-		/// The distance, in pixels, for the hanging indent applied to the current text selection or the insertion point.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
 		public int SelectionHangingIndent
 		{
-			get => _input.SelectionHangingIndent;
-			set { _input.SelectionHangingIndent = value; _input.Invalidate(); Invalidate(); }
+			get => input.SelectionHangingIndent;
+			set { input.SelectionHangingIndent = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the length, in pixels, of the indentation of the line where the selection starts.
-		/// </summary>
-		/// <returns>
-		/// The current distance, in pixels, of the indentation applied to the left of the current text selection or the insertion point.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
 		public int SelectionIndent
 		{
-			get => _input.SelectionIndent;
-			set { _input.SelectionIndent = value; _input.Invalidate(); Invalidate(); }
+			get => input.SelectionIndent;
+			set { input.SelectionIndent = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the number of characters selected in the control.
-		/// </summary>
-		/// <returns>
-		/// The number of characters selected in the control.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
 		public int SelectionLength
 		{
-			get => _input.SelectionLength;
-			set { _input.SelectionLength = value; _input.Invalidate(); Invalidate(); }
+			get => input.SelectionLength;
+			set { input.SelectionLength = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets a value indicating whether the current text selection is protected.
-		/// </summary>
-		/// <returns>
-		/// <see langword="true"/> if the current selection prevents any changes to its content; otherwise, <see langword="false"/>. The default is <see langword="false"/>.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
 		public bool SelectionProtected
 		{
-			get => _input.SelectionProtected;
-			set { _input.SelectionProtected = value; _input.Invalidate(); Invalidate(); }
+			get => input.SelectionProtected;
+			set { input.SelectionProtected = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// The distance (in pixels) between the right edge of the control and the right edge of the text that is selected or added at the current insertion point.
-		/// </summary>
-		/// <returns>
-		/// The indentation space, in pixels, at the right of the current selection or insertion point.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
 		public int SelectionRightIndent
 		{
-			get => _input.SelectionIndent;
-			set { _input.SelectionIndent = value; _input.Invalidate(); Invalidate(); }
+			get => input.SelectionRightIndent;
+			set { input.SelectionRightIndent = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the absolute tab stop positions in a control.
-		/// </summary>
-		/// <returns>
-		/// An array in which each member specifies a tab offset, in pixels.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
 		public int[] SelectionTabs
 		{
-			get => _input.SelectionTabs;
-			set { _input.SelectionTabs = value; _input.Invalidate(); Invalidate(); }
+			get => input.SelectionTabs;
+			set { input.SelectionTabs = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets the selection type within the control.
-		/// </summary>
-		/// <returns>
-		/// A bitwise combination of the <see cref="RichTextBoxSelectionTypes"/> values.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
-		public RichTextBoxSelectionTypes SelectionType => _input.SelectionType;
+		public RichTextBoxSelectionTypes SelectionType => input.SelectionType;
 
-		/// <summary>
-		/// Gets the length of text in the control.
-		/// </summary>
-		/// <returns>
-		/// The number of characters contained in the text of the control.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
-		public int TextLength => _input.TextLength;
+		public int TextLength => input.TextLength;
 
-		/// <summary>
-		/// Gets or sets the current zoom level of the control.
-		/// </summary>
-		/// <returns>
-		/// The factor by which the contents of the control is zoomed.
-		/// </returns>
-		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden), Browsable(false)]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false)]
 		public float ZoomFactor
 		{
-			get => _input.ZoomFactor;
-			set { _input.ZoomFactor = value; _input.Invalidate(); Invalidate(); }
+			get => input.ZoomFactor;
+			set { input.ZoomFactor = value; input.Invalidate(); Invalidate(); }
 		}
 
-		/// <summary>
-		/// Gets or sets the cursor that is displayed when the mouse pointer is over the control.
-		/// </summary>
-		/// <returns>
-		/// A <see cref="Cursor"/> that represents the cursor to display when the mouse pointer is over the control.
-		/// </returns>
-		[Category("Appearance"), Description("Gets or sets the cursor that is displayed when the mouse pointer is over the control.")]
+		[Category("Appearance"), Description("Gets or sets the cursor that is displatyed when the mouse pointer is over the control.")]
 		public override Cursor Cursor
 		{
 			get => base.Cursor;
 			set
 			{
 				base.Cursor = value;
-				_input.Cursor = value;
-				if (!_useUserSchemeCursor) _originalCrsr = value;
+				input.Cursor = value;
+				if (!useUserSchemeCursor) originalCursor = value;
 
 				OnCursorChanged(EventArgs.Empty);
-				_input.Invalidate();
+				input.Invalidate();
 				Invalidate();
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets the background color of the control.
-		/// </summary>
-		[Category("Appearance"), Description("Gets or sets the background color of the control.")]
-		public override Color BackColor
-		{
-			get => base.BackColor;
-			set { base.BackColor = value; _input.BackColor = value; OnBackColorChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
-		}
-
-		/// <summary>
-		/// Gets or sets the foreground color of the control.
-		/// </summary>
-		[Category("Appearance"), Description("Gets or sets the foreground color of the control.")]
-		public override Color ForeColor
-		{
-			get => base.ForeColor;
-			set { base.ForeColor = value; _input.ForeColor = value; OnForeColorChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
-		}
-
-		/// <summary>
-		/// Gets or sets the font of the text displayed by the control.
-		/// </summary>
-		/// <returns>
-		/// The <see cref="Font"/> to apply to the text displayed by the control. The default is the value of the <see cref="Control.DefaultFont"/> property.
-		/// </returns>
-		[Category("Appearance"), Description("Gets or sets the font of the text displayed by the control.")]
-		public override Font Font
-		{
-			get => base.Font;
-			set { base.Font = value; _input.Font = value; OnFontChanged(EventArgs.Empty); _input.Invalidate(); Invalidate(); }
-		}
-
-		/// <summary>
-		/// Gets a value indicating whether the control has input focus.
-		/// </summary>
-		/// <returns>
-		/// <see langword="true"/> if the control has focus; otherwise, <see langword="false."/>
-		/// </returns>
-		public override bool Focused => _input.Focused;
+		public override bool Focused => input.Focused;
 
 		public NovaRichInput()
 		{
@@ -550,79 +380,77 @@ namespace NovaUI.Controls
 			DoubleBuffered = true;
 
 			Font = new Font("Segoe UI", 9f);
+			borderFocusedPen = activeColor.ToPen();
+			borderHoverPen = borderColor.Lighter(0.1f).ToPen();
+			borderNormalPen = borderColor.ToPen();
 			BackColor = Constants.PrimaryColor;
 			ForeColor = Constants.TextColor;
 			Width = 200;
 			Height = 150;
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 
-			_input.Multiline = true;
-			_input.BorderStyle = BorderStyle.None;
-			_input.Location = new Point(8, 8);
-			_input.Width = Width - 16;
-			_input.Height = Height - 16;
-			_input.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
+			input.Multiline = true;
+			input.BorderStyle = BorderStyle.None;
+			input.Location = new Point(8, 8);
+			input.Width = Width - 16;
+			input.Height = Height - 16;
+			input.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
 
-			_input.GotFocus += (_, __) => { _input.Invalidate(); Invalidate(); };
-			_input.LostFocus += (_, e) => OnLostFocus(e);
+			input.GotFocus += (_, __) => { input.Invalidate(); Invalidate(); };
+			input.LostFocus += (_, e) => OnLostFocus(e);
 
-			_input.TextChanged += (_, e) => { base.Text = _input.Text; OnTextChanged(e); };
-			_input.KeyDown += (_, e) => OnKeyDown(e);
-			_input.KeyPress += (_, e) => OnKeyPress(e);
-			_input.KeyUp += (_, e) => OnKeyUp(e);
+			input.TextChanged += (_, e) => { base.Text = input.Text; OnTextChanged(e); };
+			input.KeyDown += (_, e) => OnKeyDown(e);
+			input.KeyPress += (_, e) => OnKeyPress(e);
+			input.KeyUp += (_, e) => OnKeyUp(e);
 
-			_input.MouseEnter += (_, e) => OnMouseEnter(e);
-			_input.MouseLeave += (_, e) => OnMouseLeave(e);
+			input.MouseEnter += (_, e) => OnMouseEnter(e);
+			input.MouseLeave += (_, e) => OnMouseLeave(e);
 
-			_input.Click += (_, e) => OnClick(e);
-			_input.MouseClick += (_, e) => OnMouseClick(e);
+			input.Click += (_, e) => OnClick(e);
+			input.MouseClick += (_, e) => OnMouseClick(e);
 
-			_delayTracker.Tick += (_, __) =>
+			delayTracker.Tick += (_, __) =>
 			{
-				if (_delay.ElapsedMilliseconds > 250)
+				if (delay.ElapsedMilliseconds > 300)
 				{
 					OnInputEnded(EventArgs.Empty);
-					_delayTracker.Stop();
-					_delay.Stop();
-					_canDelay = true;
+					delayTracker.Stop();
+					delay.Stop();
+					canDelay = true;
 				}
 			};
 
-			Controls.Add(_input);
+			Controls.Add(input);
 		}
 
-		/// <summary>
-		/// <inheritdoc cref="TextBoxBase.AppendText(string)"/>
-		/// </summary>
-		/// <param name="Text">The text to append to the current contents of the text box.</param>
-		public void AppendText(string Text) => _input.AppendText(Text);
+		public void AppendText(string Text) => input.AppendText(Text);
 
 		private void UpdateHeight()
 		{
-			//if (Height < _input.Height + 16) Height = _input.Height + 16;
-			if (_input.Multiline) _input.Height = Height - 16;
+			if (input.Multiline) input.Height = Height - 16;
 		}
 
 		private void UpdateInputBounds()
 		{
-			_input.Location = new Point(6 + (_borderRadius == 0 ? 0 : _borderRadius / (_underlineBorder ? 2 : 4)) + _borderWidth, 8 + _borderWidth);
-			_input.Width = Width - 16 - (2 * (_borderRadius == 0 ? 0 : _borderRadius / (_underlineBorder ? 2 : 4))) - (_borderWidth * 2);
-			_input.Height = Height - 16 - (2 * (_borderRadius == 0 ? 0 : _borderRadius / (_underlineBorder ? 2 : 4))) - (_borderWidth * 2);
+			input.Location = new Point(6 + (borderRadius == 0 ? 0 : borderRadius / (underlineBorder ? 2 : 4)) + borderWidth, 8 + borderWidth);
+			input.Width = Width - 16 - (2 * (borderRadius == 0 ? 0 : borderRadius / (underlineBorder ? 2 : 4))) - (borderWidth * 2);
+			input.Height = Height - 16 - (2 * (borderRadius == 0 ? 0 : borderRadius / (underlineBorder ? 2 : 4))) - (borderWidth * 2);
 		}
 
 		protected override void OnKeyDown(KeyEventArgs e)
 		{
 			base.OnKeyDown(e);
 
-			if (_canDelay)
+			if (canDelay)
 			{
 				OnInputStarted(EventArgs.Empty);
-				_canDelay = false;
+				canDelay = false;
 			}
 			else
 			{
-				_delay.Restart();
-				_delayTracker.Stop();
+				delay.Restart();
+				delayTracker.Stop();
 			}
 		}
 
@@ -630,8 +458,8 @@ namespace NovaUI.Controls
 		{
 			base.OnKeyUp(e);
 
-			_delay.Start();
-			_delayTracker.Start();
+			delay.Start();
+			delayTracker.Start();
 		}
 
 		protected override void OnResize(EventArgs e)
@@ -639,7 +467,7 @@ namespace NovaUI.Controls
 			base.OnResize(e);
 
 			UpdateHeight();
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 		}
 
 		protected override void OnSizeChanged(EventArgs e)
@@ -647,16 +475,16 @@ namespace NovaUI.Controls
 			base.OnSizeChanged(e);
 
 			UpdateHeight();
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 		}
 
 		protected override void OnMouseEnter(EventArgs e)
 		{
 			base.OnMouseEnter(e);
 
-			_mouseHover = true;
-			if (_useUserSchemeCursor) Cursor = Win32.RegCursor("IBeam");
-			else Cursor = _originalCrsr;
+			mouseHover = true;
+			if (useUserSchemeCursor) Win32.GetRegistryCursor(Win32.RegistryCursor.IBeam, this);
+			else Cursor = originalCursor;
 			Invalidate();
 		}
 
@@ -664,7 +492,7 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseLeave(e);
 
-			_mouseHover = false;
+			mouseHover = false;
 			Invalidate();
 		}
 
@@ -672,7 +500,7 @@ namespace NovaUI.Controls
 		{
 			base.OnGotFocus(e);
 
-			_input.Focus();
+			input.Focus();
 			Invalidate();
 		}
 
@@ -687,7 +515,7 @@ namespace NovaUI.Controls
 		{
 			base.OnClick(e);
 
-			_input.Focus();
+			input.Focus();
 			Invalidate();
 		}
 
@@ -695,7 +523,7 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseClick(e);
 
-			_input.Focus();
+			input.Focus();
 			Invalidate();
 		}
 
@@ -703,14 +531,43 @@ namespace NovaUI.Controls
 		{
 			base.OnMouseDown(e);
 
-			_input.Focus();
+			input.Focus();
 			Invalidate();
 		}
 
 		protected override void OnParentBackColorChanged(EventArgs e)
 		{
 			base.OnParentBackColorChanged(e);
-			_input.Invalidate();
+			input.Invalidate();
+			Invalidate();
+		}
+
+		protected override void OnFontChanged(EventArgs e)
+		{
+			base.OnFontChanged(e);
+
+			input.Font = Font;
+			UpdateHeight();
+		}
+
+		protected override void OnBackColorChanged(EventArgs e)
+		{
+			base.OnBackColorChanged(e);
+			if (backBrush.Color != BackColor)
+			{
+				backBrush.Color = BackColor;
+				backPen.Color = BackColor;
+			}
+			input.BackColor = BackColor;
+			input.Invalidate();
+			Invalidate();
+		}
+
+		protected override void OnForeColorChanged(EventArgs e)
+		{
+			base.OnForeColorChanged(e);
+			input.ForeColor = ForeColor;
+			input.Invalidate();
 			Invalidate();
 		}
 
@@ -718,48 +575,46 @@ namespace NovaUI.Controls
 		{
 			base.OnPaint(e);
 
-			e.Graphics.Clear(Parent.BackColor);
+			e.Graphics.Clear(Parent != null ? Parent.BackColor : Color.Transparent);
 
-			if (_underlineBorder)
+			if (underlineBorder)
 			{
-				if (_borderRadius > 0)
-				{
-					e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-					for (int i = 0; i < _borderWidth; i++)
-						e.Graphics.DrawPath(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
-							new Rectangle(i, i + 1, Width - (i * 2) - 1, Height - (i * 2) - 3).Roundify(_borderRadius - i));
-					e.Graphics.FillPath(BackColor.ToBrush(),
-						new Rectangle(0, 0, Width - 1, Height - _borderWidth - 1).Roundify(_borderRadius));
-					e.Graphics.DrawPath(new Pen(BackColor.ToBrush()),
-						new Rectangle(0, 0, Width - 1, Height - _borderWidth - 1).Roundify(_borderRadius));
-				}
-				else
-				{
-					e.Graphics.FillRectangle(BackColor.ToBrush(),
-						new Rectangle(0, 0, Width, Height - _borderWidth));
-					e.Graphics.DrawRectangle(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
-						new Rectangle(0, Height - 1, Width, _borderWidth));
-				}
+				e.Graphics.FillRectangle(backBrush,
+					new Rectangle(0, 0, Width, Height - borderWidth));
+				e.Graphics.DrawRectangle(Focused ? borderFocusedPen : (mouseHover ? borderHoverPen : borderNormalPen),
+					new Rectangle(0, Height - borderWidth, Width, borderWidth));
 			}
 			else
 			{
-				if (_borderRadius > 0)
+				if (borderRadius > 0)
 				{
 					e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-					e.Graphics.FillPath(BackColor.ToBrush(),
-						new Rectangle(_borderWidth - 1, _borderWidth - 1, Width - (_borderWidth * 2) + 1, Height - (_borderWidth * 2) + 1).Roundify(Math.Max(1, _borderRadius - _borderWidth)));
-					for (int i = 0; i < _borderWidth; i++)
-						e.Graphics.DrawPath(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
-							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1).Roundify(_borderRadius - i));
+					e.Graphics.FillPath(backBrush,
+						new Rectangle(borderWidth - 1, borderWidth - 1, Width - (borderWidth * 2) + 1, Height - (borderWidth * 2) + 1).Round(Math.Max(1, borderRadius - borderWidth)));
+					e.Graphics.DrawPath(Focused ? borderFocusedPen : (mouseHover ? borderHoverPen : borderNormalPen),
+						new RectangleF(borderWidth / 2f - 0.5f, borderWidth / 2f - 0.5f, Width - borderWidth, Height - borderWidth).Round(borderRadius));
 				}
 				else
 				{
-					e.Graphics.FillRectangle(BackColor.ToBrush(),
-						new Rectangle(_borderWidth, _borderWidth, Width - (_borderWidth * 2), Height - (_borderWidth * 2)));
-					for (int i = 0; i < _borderWidth; i++)
-						e.Graphics.DrawRectangle(new Pen((Focused ? _activeColor : _borderColor.Lighter(_mouseHover ? 0.1f : 0)).ToBrush()),
-							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1));
+					e.Graphics.FillRectangle(backBrush,
+						new Rectangle(borderWidth, borderWidth, Width - (borderWidth * 2), Height - (borderWidth * 2)));
+					e.Graphics.DrawRectangle(Focused ? borderFocusedPen : (mouseHover ? borderHoverPen : borderNormalPen),
+						borderWidth / 2f, borderWidth / 2f, Width - borderWidth, Height - borderWidth);
 				}
+			}
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			base.Dispose(disposing);
+
+			if (disposing)
+			{
+				borderFocusedPen?.Dispose();
+				borderHoverPen?.Dispose();
+				borderNormalPen?.Dispose();
+				backBrush?.Dispose();
+				backPen?.Dispose();
 			}
 		}
 	}

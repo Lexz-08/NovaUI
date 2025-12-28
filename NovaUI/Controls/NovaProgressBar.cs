@@ -12,14 +12,22 @@ namespace NovaUI.Controls
 	[DefaultEvent("ValueChanged")]
 	public class NovaProgressBar : Control
 	{
-		private Color _borderColor = Constants.BorderColor;
-		private Color _progressColor = Constants.AccentColor;
-		private int _borderWidth = 1;
-		private int _borderRadius = 6;
-		private int _value = 50;
-		private int _defValue = 50;
-		private int _maximum = 100;
-		private int _minimum = 0;
+		private readonly Pen borderPen = Color.Transparent.ToPen();
+		private readonly SolidBrush backBrush = Color.Transparent.ToBrush();
+		private readonly Pen backPen = Color.Transparent.ToPen();
+		private readonly SolidBrush progressBrush = Color.Transparent.ToBrush();
+		private readonly Pen progressPen = Color.Transparent.ToPen();
+
+		private Color borderColor = Constants.BorderColor;
+		private Color progressColor = Constants.AccentColor;
+		private int borderWidth = 1;
+		private int borderRadius = 6;
+		private int value = 50;
+		private int defaultValue = 50;
+		private int maximum = 100;
+		private int minimum = 0;
+
+		private float percent;
 
 		/// <summary>
 		/// Occurs when the value of the <see cref="BorderColor"/> property changes.
@@ -46,175 +54,155 @@ namespace NovaUI.Controls
 		public event EventHandler BorderRadiusChanged;
 
 		/// <summary>
-		/// Occurs when the value of the <see cref="Value"/> property changes.
+		/// Occurs when the value of the <see cref="ValueChanged"/> property changes.
 		/// </summary>
-		[Category("Value"), Description("Occurs when the value of the Value property changes.")]
+		[Category("Property"), Description("Occurs when the value of the ValueChanged property changes.")]
 		public event EventHandler ValueChanged;
 
-		/// <summary>
-		/// Raises the <see cref="BorderColorChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderColorChanged(EventArgs e)
 		{
 			BorderColorChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="ProgressColorChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnProgressColorChanged(EventArgs e)
 		{
 			ProgressColorChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="BorderWidthChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderWidthChanged(EventArgs e)
 		{
 			BorderWidthChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="BorderRadiusChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnBorderRadiusChanged(EventArgs e)
 		{
 			BorderRadiusChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Raises the <see cref="ValueChanged"/> event.
-		/// </summary>
-		/// <param name="e">An EventArgs that contains the event data.</param>
 		protected virtual void OnValueChanged(EventArgs e)
 		{
 			ValueChanged?.Invoke(this, e);
 			Invalidate();
 		}
 
-		/// <summary>
-		/// Gets or sets the border color of the control.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets the border color of the control.")]
 		public Color BorderColor
 		{
-			get => _borderColor;
-			set { _borderColor = value; OnBorderColorChanged(EventArgs.Empty); }
+			get => borderColor;
+			set
+			{
+				borderColor = value;
+				if (borderPen.Color != value) borderPen.Color = value;
+				OnBorderColorChanged(EventArgs.Empty);
+			}
 		}
 
-		/// <summary>
-		/// Gets or sets the background color of the control progress indicator.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets the background color of the control progress indicator.")]
 		public Color ProgressColor
 		{
-			get => _progressColor;
-			set { _progressColor = value; OnProgressColorChanged(EventArgs.Empty); }
+			get => progressColor;
+			set
+			{
+				progressColor = value;
+				if (progressBrush.Color != value)
+				{
+					progressBrush.Color = value;
+					progressPen.Color = value;
+				}
+				OnProgressColorChanged(EventArgs.Empty);
+			}
 		}
 
-		/// <summary>
-		/// Gets or sets the border width of the control.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets the border width of the control.")]
 		public int BorderWidth
 		{
-			get => _borderWidth;
-			set { _borderWidth = value; OnBorderWidthChanged(EventArgs.Empty); }
+			get => borderWidth;
+			set
+			{
+				borderWidth = value;
+				if (borderPen.Width != value) borderPen.Width = value;
+				OnBorderWidthChanged(EventArgs.Empty);
+			}
 		}
 
-		/// <summary>
-		/// Gets or sets the border radius of the control.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Appearance"), Description("Gets or sets the border radius of the control.")]
 		public int BorderRadius
 		{
-			get => _borderRadius;
+			get => borderRadius;
 			set
 			{
-				if (value != _borderRadius)
+				if (value != borderRadius)
 					Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, value, value));
-				_borderRadius = value;
+				borderRadius = value;
 				OnBorderRadiusChanged(EventArgs.Empty);
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets the value associated with this control progress bar.
-		/// </summary>
-		[Category("Progress Indicator"), Description("Gets or sets the value associated with this control progress bar.")]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+		[Category("Progress Indicator"), Description("Gets or sets the value associated with the control progress bar.")]
 		public int Value
 		{
-			get => _value;
+			get => value;
 			set
 			{
-				if (_maximum < value) value = _maximum;
-				else if (_minimum > value) value = _minimum;
-				_value = value;
+				value = Math.Max(minimum, Math.Min(value, maximum));
+				this.value = value;
 				OnValueChanged(EventArgs.Empty);
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets the default value associated with this control progress bar.
-		/// </summary>
-		[Category("Progress Indicator"), Description("Gets or sets the default value associated with this control progress bar.")]
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
+		[Category("Progress Indicator"), Description("Gets or sets the default value associated with the control progress bar.")]
 		public int DefaultValue
 		{
-			get => _defValue;
+			get => defaultValue;
 			set
 			{
-				if (_maximum < value) value = _maximum;
-				else if (_minimum > value) value = _minimum;
-				_value = value;
-				OnValueChanged(EventArgs.Empty);
+				value = Math.Max(minimum, Math.Min(value, maximum));
+				defaultValue = value;
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets the maximum value the control progress bar can bet at.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Progress Indicator"), Description("Gets or sets the maximum value the control progress bar can be at.")]
 		public int Maximum
 		{
-			get => _maximum;
+			get => maximum;
 			set
 			{
-				if (value < _value)
+				if (value < this.value)
 				{
-					_value = value;
+					this.value = value;
 					OnValueChanged(EventArgs.Empty);
 				}
-				if (value < _minimum) _minimum = value - 2;
-				_maximum = value;
+				if (value < minimum) minimum = value - 2;
+				maximum = value;
 				Invalidate();
 			}
 		}
 
-		/// <summary>
-		/// Gets or sets the minimum value the control progress bar can be at.
-		/// </summary>
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Visible)]
 		[Category("Progress Indicator"), Description("Gets or sets the minimum value the control progress bar can be at.")]
 		public int Minimum
 		{
-			get => _minimum;
+			get => minimum;
 			set
 			{
-				if (value > _value)
+				if (value > this.value)
 				{
-					_value = value;
+					this.value = value;
 					OnValueChanged(EventArgs.Empty);
 				}
-				if (value > _maximum) _maximum = value + 2;
-				_minimum = value;
+				if (value > maximum) maximum = value + 2;
+				minimum = value;
 				Invalidate();
 			}
 		}
@@ -223,13 +211,15 @@ namespace NovaUI.Controls
 		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
 		public override Font Font => new Font("Segoe UI", 0.1f);
 
-		/// <summary>
-		/// Replaced by the <see cref="Value"/> property.
-		/// </summary>
 		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
 		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
 		[Obsolete("The Text property is replaced by the Value property.", true)]
 		public new string Text => string.Empty;
+
+		[DesignerSerializationVisibility(DesignerSerializationVisibility.Hidden)]
+		[Browsable(false), EditorBrowsable(EditorBrowsableState.Never)]
+		[Obsolete("The ForeColor property is not needed with absence of text.", true)]
+		public new Color ForeColor => Color.Empty;
 
 		public NovaProgressBar()
 		{
@@ -239,18 +229,14 @@ namespace NovaUI.Controls
 				ControlStyles.OptimizedDoubleBuffer, true);
 			DoubleBuffered = true;
 
-			BackColor = Constants.PrimaryColor;
-			ForeColor = Constants.TextColor;
-			Size = new Size(200, 12);
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			borderPen = new Pen(borderColor, borderWidth);
+			backPen = new Pen(backBrush = (BackColor = Constants.PrimaryColor).ToBrush());
+			progressPen = new Pen(progressBrush = progressColor.ToBrush());
 		}
 
-		/// <summary>
-		/// Resets, really just "sets", the value of the <see cref="Value"/> property to the value of the <see cref="DefaultValue"/> property.
-		/// </summary>
 		public void ResetValue()
 		{
-			_value = _defValue;
+			value = defaultValue;
 			OnValueChanged(EventArgs.Empty);
 		}
 
@@ -258,14 +244,14 @@ namespace NovaUI.Controls
 		{
 			base.OnResize(e);
 
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 		}
 
 		protected override void OnSizeChanged(EventArgs e)
 		{
 			base.OnSizeChanged(e);
 
-			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, _borderRadius, _borderRadius));
+			Region = Region.FromHrgn(Win32.CreateRoundRectRgn(0, 0, Width + 1, Height + 1, borderRadius, borderRadius));
 		}
 
 		protected override void OnParentBackColorChanged(EventArgs e)
@@ -274,68 +260,89 @@ namespace NovaUI.Controls
 			Invalidate();
 		}
 
+		protected override void OnBackColorChanged(EventArgs e)
+		{
+			base.OnBackColorChanged(e);
+			if (backBrush.Color != BackColor)
+			{
+				backBrush.Color = BackColor;
+				backPen.Color = BackColor;
+			}
+			Invalidate();
+		}
+
 		protected override void OnPaint(PaintEventArgs e)
 		{
 			base.OnPaint(e);
 
-			e.Graphics.Clear(Parent.BackColor);
+			e.Graphics.Clear(Parent != null ? Parent.BackColor : Color.Transparent);
 
-			float percent = (_value - _minimum) / (float)(_maximum - _minimum);
-			int width = (int)((Width - (_borderWidth * 2) - 1) * percent);
+			percent = (value - minimum) / (float)(maximum - minimum);
 
-			if (_borderRadius > 0)
+			if (borderRadius > 0)
 			{
 				e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.HighQuality;
-				if (_borderWidth > 0)
+				if (borderWidth > 0)
 				{
-					e.Graphics.FillPath(BackColor.ToBrush(),
-						new Rectangle(_borderWidth - 1, _borderWidth - 1, Width - (_borderWidth * 2) + 1, Height - (_borderWidth * 2) + 1).Roundify(Math.Max(1, _borderRadius - _borderWidth)));
-					for (int i = 0; i < _borderWidth; i++)
-						e.Graphics.DrawPath(new Pen(_borderColor.ToBrush()),
-							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1).Roundify(_borderRadius - i));
+					e.Graphics.FillPath(backBrush,
+						new Rectangle(borderWidth - 1, borderWidth - 1, Width - (borderWidth * 2) + 1, Height - (borderWidth * 2) + 1).Round(Math.Max(1, borderRadius - borderWidth)));
+					e.Graphics.DrawPath(borderPen,
+						new RectangleF(borderWidth / 2f - 0.5f, borderWidth / 2f - 0.5f, Width - borderWidth, Height - borderWidth).Round(borderRadius));
 
-					e.Graphics.SetClip(new Rectangle(_borderWidth, _borderWidth, (int)((Width - (_borderWidth * 2)) * percent), Height - (_borderWidth * 2)));
-					e.Graphics.FillPath(_progressColor.ToBrush(),
-						new Rectangle(_borderWidth + 1, _borderWidth + 1, Width - (_borderWidth * 2) - 3, Height - (_borderWidth * 2) - 3).Roundify(_borderRadius - _borderWidth));
-					e.Graphics.DrawPath(new Pen(_progressColor.ToBrush()),
-						new Rectangle(_borderWidth + 1, _borderWidth + 1, Width - (_borderWidth * 2) - 3, Height - (_borderWidth * 2) - 4).Roundify(_borderRadius - _borderWidth));
+					e.Graphics.SetClip(new Rectangle(borderWidth, borderWidth, (int)((Width - (borderWidth * 2)) * percent), Height - (borderWidth * 2)));
+					e.Graphics.FillPath(progressBrush,
+						new Rectangle(borderWidth + 1, borderWidth + 1, Width - (borderWidth * 2) - 3, Height - (borderWidth * 2) - 3).Round(borderRadius - borderWidth));
+					e.Graphics.DrawPath(progressPen,
+						new Rectangle(borderWidth + 1, borderWidth + 1, Width - (borderWidth * 2) - 3, Height - (borderWidth * 2) - 3).Round(borderRadius - borderWidth));
 				}
 				else
 				{
-					e.Graphics.FillPath(BackColor.ToBrush(),
-						new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
-					e.Graphics.DrawPath(new Pen(BackColor.ToBrush()),
-						new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
+					e.Graphics.FillPath(backBrush,
+						new Rectangle(0, 0, Width - 1, Height - 1).Round(borderRadius));
+					e.Graphics.DrawPath(backPen,
+						new Rectangle(0, 0, Width - 1, Height - 1).Round(borderRadius));
 
 					e.Graphics.SetClip(new Rectangle(0, 0, (int)(Width * percent), Height));
-					e.Graphics.FillPath(_progressColor.ToBrush(),
-						new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
-					e.Graphics.DrawPath(new Pen(_progressColor.ToBrush()),
-						new Rectangle(0, 0, Width - 1, Height - 1).Roundify(_borderRadius));
+					e.Graphics.FillPath(progressBrush,
+						new Rectangle(0, 0, Width - 1, Height - 1).Round(borderRadius));
+					e.Graphics.DrawPath(progressPen,
+						new Rectangle(0, 0, Width - 1, Height - 1).Round(borderRadius));
 				}
 			}
 			else
 			{
-				if (_borderWidth > 0)
+				if (borderWidth > 0)
 				{
-					e.Graphics.FillRectangle(BackColor.ToBrush(),
-						new Rectangle(_borderWidth, _borderWidth, Width - (_borderWidth * 2), Height - (_borderWidth * 2)));
-					for (int i = 0; i < _borderWidth; i++)
-						e.Graphics.DrawRectangle(new Pen(_borderColor.ToBrush()),
-							new Rectangle(i, i, Width - (i * 2) - 1, Height - (i * 2) - 1));
+					e.Graphics.FillRectangle(backBrush,
+						new Rectangle(borderWidth, borderWidth, Width - (borderWidth * 2), Height - (borderWidth * 2)));
+					e.Graphics.DrawRectangle(borderPen,
+						borderWidth / 2f, borderWidth / 2f, Width - borderWidth, Height - borderWidth);
 
-					e.Graphics.SetClip(new Rectangle(_borderWidth, _borderWidth, (int)((Width - (_borderWidth * 2)) * percent), Height - (_borderWidth * 2)));
-					e.Graphics.FillRectangle(_progressColor.ToBrush(), new Rectangle(_borderWidth + 1, _borderWidth + 1, Width - ((_borderWidth + 1) * 2), Height - ((_borderWidth + 1) * 2)));
+					e.Graphics.SetClip(new Rectangle(borderWidth, borderWidth, (int)((Width - (borderWidth * 2)) * percent), Height - (borderWidth * 2)));
+					e.Graphics.FillRectangle(progressBrush,
+						new Rectangle(borderWidth + 1, borderWidth + 1, Width - ((borderWidth + 1) * 2), Height - ((borderWidth + 1) * 2)));
 				}
 				else
 				{
-					e.Graphics.FillRectangle(BackColor.ToBrush(),
-						new Rectangle(0, 0, Width, Height));
+					e.Graphics.FillRectangle(backBrush, new Rectangle(0, 0, Width, Height));
 
 					e.Graphics.SetClip(new Rectangle(0, 0, (int)(Width * percent), Height));
-					e.Graphics.FillRectangle(_progressColor.ToBrush(),
-						new Rectangle(0, 0, Width, Height));
+					e.Graphics.FillRectangle(progressBrush, new Rectangle(0, 0, Width, Height));
 				}
+			}
+		}
+
+		protected override void Dispose(bool disposing)
+		{
+			base.Dispose(disposing);
+
+			if (disposing)
+			{
+				borderPen?.Dispose();
+				backBrush?.Dispose();
+				backPen?.Dispose();
+				progressBrush?.Dispose();
+				progressPen?.Dispose();
 			}
 		}
 	}
