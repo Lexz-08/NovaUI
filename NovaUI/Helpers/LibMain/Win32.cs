@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
@@ -40,94 +41,67 @@ namespace NovaUI.Helpers.LibMain
 
 		public const int CS_DROPSHADOW = 0x00020000;
 
-		public static Cursor RegCursor(string cursor)
+		public const int WM_NCCALCSIZE = 0x0083;
+		public const int WM_SYSCOMMAND = 0x0112;
+		public const int SC_MINIMIZE = 0xF020;
+		public const int SC_RESTORE = 0xF120;
+
+		public enum RegistryCursor
 		{
-			RegistryKey curKey = Registry.CurrentUser.OpenSubKey("Control Panel\\Cursors");
-			Cursor cCursor;
+			AppStarting,
+			Arrow,
+			Crosshair,
+			Hand,
+			Help,
+			IBeam,
+			No,
+			SizeAll,
+			SizeNESW,
+			SizeNS,
+			SizeNWSE,
+			SizeWE,
+			UpArrow,
+			Wait
+		}
 
-			/*
-			 
-			AppStarting
-			Arrow
-			Cross
-			Default
-			Hand
-			Help
-			IBeam
-			No
-			SizeAll
-			SizeNESW
-			SizeNS
-			SizeNWSE
-			SizeWE
-			UpArrow
-			WaitCursor
+		private static readonly Dictionary<RegistryCursor, (Cursor Cursor, string Path)> cursors = new Dictionary<RegistryCursor, (Cursor Cursor, string Path)>();
+		private static readonly Dictionary<RegistryCursor, IntPtr> formCursors = new Dictionary<RegistryCursor, IntPtr>()
+		{
+			{ RegistryCursor.AppStarting, Cursors.AppStarting.Handle },
+			{ RegistryCursor.Arrow, Cursors.Arrow.Handle },
+			{ RegistryCursor.Crosshair, Cursors.Cross.Handle },
+			{ RegistryCursor.Hand, Cursors.Hand.Handle },
+			{ RegistryCursor.Help, Cursors.Help.Handle },
+			{ RegistryCursor.IBeam, Cursors.IBeam.Handle },
+			{ RegistryCursor.No, Cursors.No.Handle },
+			{ RegistryCursor.SizeAll, Cursors.SizeAll.Handle },
+			{ RegistryCursor.SizeNESW, Cursors.SizeNESW.Handle },
+			{ RegistryCursor.SizeNS, Cursors.SizeNS.Handle },
+			{ RegistryCursor.SizeNWSE, Cursors.SizeNWSE.Handle },
+			{ RegistryCursor.SizeWE, Cursors.SizeWE.Handle },
+			{ RegistryCursor.UpArrow, Cursors.UpArrow.Handle },
+			{ RegistryCursor.Wait, Cursors.WaitCursor.Handle }
+		};
 
-			 */
-
-			switch (cursor)
+		public static void GetRegistryCursor(RegistryCursor cursor, Control control)
+		{
+			using (RegistryKey curKey = Registry.CurrentUser.OpenSubKey("Control Panel\\Cursors"))
 			{
-				case "AppStarting":
-					string cursorPath = (string)curKey.GetValue("AppStarting");
-					cCursor = new Cursor(!string.IsNullOrEmpty(cursorPath) ? LoadCursorFromFile(cursorPath) : Cursors.AppStarting.Handle);
-					break;
-				case "Arrow":
-					cursorPath = (string)curKey.GetValue("Arrow");
-					cCursor = new Cursor(!string.IsNullOrEmpty(cursorPath) ? LoadCursorFromFile(cursorPath) : Cursors.Arrow.Handle);
-					break;
-				case "Cross":
-					cursorPath = (string)curKey.GetValue("Crosshair");
-					cCursor = new Cursor(!string.IsNullOrEmpty(cursorPath) ? LoadCursorFromFile(cursorPath) : Cursors.Cross.Handle);
-					break;
-				case "Hand":
-					cursorPath = (string)curKey.GetValue("Hand");
-					cCursor = new Cursor(!string.IsNullOrEmpty(cursorPath) ? LoadCursorFromFile(cursorPath) : Cursors.Hand.Handle);
-					break;
-				case "Help":
-					cursorPath = (string)curKey.GetValue("Help");
-					cCursor = new Cursor(!string.IsNullOrEmpty(cursorPath) ? LoadCursorFromFile(cursorPath) : Cursors.Help.Handle);
-					break;
-				case "IBeam":
-					cursorPath = (string)curKey.GetValue("IBeam");
-					cCursor = new Cursor(!string.IsNullOrEmpty(cursorPath) ? LoadCursorFromFile(cursorPath) : Cursors.IBeam.Handle);
-					break;
-				case "No":
-					cursorPath = (string)curKey.GetValue("No");
-					cCursor = new Cursor(!string.IsNullOrEmpty(cursorPath) ? LoadCursorFromFile(cursorPath) : Cursors.No.Handle);
-					break;
-				case "SizeAll":
-					cursorPath = (string)curKey.GetValue("SizeAll");
-					cCursor = new Cursor(!string.IsNullOrEmpty(cursorPath) ? LoadCursorFromFile(cursorPath) : Cursors.SizeAll.Handle);
-					break;
-				case "SizeNESW":
-					cursorPath = (string)curKey.GetValue("SizeNESW");
-					cCursor = new Cursor(!string.IsNullOrEmpty(cursorPath) ? LoadCursorFromFile(cursorPath) : Cursors.SizeNESW.Handle);
-					break;
-				case "SizeNS":
-					cursorPath = (string)curKey.GetValue("SizeNS");
-					cCursor = new Cursor(!string.IsNullOrEmpty(cursorPath) ? LoadCursorFromFile(cursorPath) : Cursors.SizeNS.Handle);
-					break;
-				case "SizeNWSE":
-					cursorPath = (string)curKey.GetValue("SizeNWSE");
-					cCursor = new Cursor(!string.IsNullOrEmpty(cursorPath) ? LoadCursorFromFile(cursorPath) : Cursors.SizeNWSE.Handle);
-					break;
-				case "SizeWE":
-					cursorPath = (string)curKey.GetValue("SizeWE");
-					cCursor = new Cursor(!string.IsNullOrEmpty(cursorPath) ? LoadCursorFromFile(cursorPath) : Cursors.SizeWE.Handle);
-					break;
-				case "UpArrow":
-					cursorPath = (string)curKey.GetValue("UpArrow");
-					cCursor = new Cursor(!string.IsNullOrEmpty(cursorPath) ? LoadCursorFromFile(cursorPath) : Cursors.UpArrow.Handle);
-					break;
-				case "WaitCursor":
-					cursorPath = (string)curKey.GetValue("Wait");
-					cCursor = new Cursor(!string.IsNullOrEmpty(cursorPath) ? LoadCursorFromFile(cursorPath) : Cursors.WaitCursor.Handle);
-					break;
-				default: case "Default": cCursor = Cursors.Default; break;
-			}
+				string cursorPath = (string)curKey.GetValue(cursor.ToString());
+				bool flag = cursors.TryGetValue(cursor, out (Cursor Cursor, string Path) pair);
 
-			curKey.Dispose();
-			return cCursor;
+				if (!flag || pair.Path != cursorPath)
+				{
+					if (flag) pair.Cursor.Dispose();
+
+					IntPtr handle = !string.IsNullOrEmpty(cursorPath) ? LoadCursorFromFile(cursorPath) : formCursors[cursor];
+
+					Cursor newCur = new Cursor(handle);
+					cursors[cursor] = (newCur, null);
+					control.Cursor = newCur;
+				}
+				else control.Cursor = pair.Cursor;
+			}
 		}
 
 		public static bool CheckAeroEnabled()
@@ -141,32 +115,6 @@ namespace NovaUI.Helpers.LibMain
 			}
 
 			return false;
-		}
-
-		public static string NumberToHex(int number, bool caps)
-		{
-			if (number > 0)
-			{
-				string result = "";
-
-				while (number != 0)
-				{
-					int quotient = number / 16;
-					int remainder = number % 16;
-
-					Console.WriteLine(number);
-
-					number = quotient;
-					result = Constants.Hexadecimals[caps][remainder] + result;
-
-					Console.Write(quotient);
-					Console.WriteLine(remainder);
-					Console.Write(result);
-				}
-
-				return result;
-			}
-			else return "0";
 		}
 	}
 }

@@ -5,17 +5,17 @@ namespace NovaUI.Helpers
 {
 	internal static class GraphicsHelper
 	{
-		public static GraphicsPath Roundify(this Rectangle rect, int radius)
+		public static GraphicsPath Round(this Rectangle rect, int radius)
 		{
-			return rect.RoundifyCorners(radius);
+			return rect.RoundCorners(radius);
 		}
 
-		public static GraphicsPath Roundify(this RectangleF rect, int radius)
+		public static GraphicsPath Round(this RectangleF rect, int radius)
 		{
-			return rect.RoundifyCorners(radius);
+			return rect.RoundCorners(radius);
 		}
 
-		public static GraphicsPath RoundifyCorners(this Rectangle rect, int radius, bool topLeft = true, bool topRight = true, bool bottomLeft = true, bool bottomRight = true)
+		public static GraphicsPath RoundCorners(this Rectangle rect, int radius, bool topLeft = true, bool topRight = true, bool bottomLeft = true, bool bottomRight = true)
 		{
 			GraphicsPath path = new GraphicsPath();
 			radius *= 2;
@@ -55,7 +55,7 @@ namespace NovaUI.Helpers
 			return path;
 		}
 
-		public static GraphicsPath RoundifyCorners(this RectangleF rect, int radius, bool topLeft = true, bool topRight = true, bool bottomLeft = true, bool bottomRight = true)
+		public static GraphicsPath RoundCorners(this RectangleF rect, int radius, bool topLeft = true, bool topRight = true, bool bottomLeft = true, bool bottomRight = true)
 		{
 			GraphicsPath path = new GraphicsPath();
 			radius *= 2;
@@ -98,6 +98,11 @@ namespace NovaUI.Helpers
 		public static Rectangle Rescale(this Rectangle rect, int posOffset, int sizeOffset)
 		{
 			return new Rectangle(rect.X + posOffset, rect.Y + posOffset, rect.Width + sizeOffset, rect.Height + sizeOffset);
+		}
+
+		public static RectangleF Rescale(this RectangleF rect, int posOffset, int sizeOffset)
+		{
+			return new RectangleF(rect.X + posOffset, rect.Y + posOffset, rect.Width + sizeOffset, rect.Height + sizeOffset);
 		}
 	}
 }
