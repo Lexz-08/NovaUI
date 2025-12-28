@@ -6,7 +6,7 @@
 
 ## Description
 An improved (hopefully) version of the [CometUI](https://github.com/Lexz-08/CometUI).<br/>
-.NET Core port available [here](https://github.com/Lexz-08/NovaUI.NetCore).
+.NET Core port for better Windows desktop distribution available [here](https://github.com/Lexz-08/NovaUI.NetCore).
 
 ## Controls
 | Version Available | Control | Description |
